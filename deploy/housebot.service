@@ -1,0 +1,14 @@
+# Runs `housebot run` once. Started by housebot.timer, not enabled on its own.
+# Install: sudo cp deploy/housebot.* /etc/systemd/system/ && sudo systemctl enable --now housebot.timer
+
+[Unit]
+Description=Housebot daily run
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=housebot
+WorkingDirectory=/home/housebot/housebot
+EnvironmentFile=/home/housebot/housebot/.env
+ExecStart=/home/housebot/housebot/.venv/bin/housebot run

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Wrapper so PicoClaw's exec tool can run housebot from inside its workspace
+# (PicoClaw's restrict_to_workspace blocks binaries outside it).
+# Copy to ~/.picoclaw/workspace/bin/housebot and set HOUSEBOT_DIR to your clone.
+HOUSEBOT_DIR="${HOUSEBOT_DIR:-$HOME/house_search}"
+cd "$HOUSEBOT_DIR" && exec .venv/bin/housebot "$@"

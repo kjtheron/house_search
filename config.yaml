@@ -1,0 +1,57 @@
+# Housebot search config. Edit this file to change what you are looking for.
+# Secrets (Telegram token, chat ID) go in .env, not here. Check it with: housebot config show
+
+search:
+  province: western-cape
+  towns: []                                      # only these towns; [] = any town. Or: housebot towns add/rm
+  exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
+  suburbs: []                                    # optional narrower filter
+  property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
+  price_min: 1500000                             # ZAR
+  price_max: 2800000
+  beds_min: 3
+  baths_min: 2
+  garages_min: 0
+  floor_min_m2: 150                              # optional
+  erf_min_m2: 400                                # optional
+  include_keywords: []                           # all must appear in title + description
+  exclude_keywords: [retirement, "life right", "share block"]
+  include_auctions: false
+  unknown_values_pass: true                      # listing lacks floor size -> still passes?
+
+# Where each site searches. `locations` = town -> the site's location ID; leave it empty ({})
+# to search the whole province (province_id). Find IDs in the site's search URL:
+#   property24.com/houses-for-sale/stellenbosch/western-cape/459  -> 459  (province: /western-cape/9)
+#   privateproperty.co.za/for-sale/western-cape/boland/stellenbosch/712  -> 712  (province: /western-cape/4)
+# max_pages is per town (or province) per property type.
+sources:
+  # Both sites sort newest first: after the first run a source stops at the first page it has
+  # already seen, so the whole province costs only a few pages a day.
+  property24:
+    enabled: true
+    max_pages: 15
+    province_id: 9
+    locations: {}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
+  privateproperty:
+    # Also newest first. Note: it names Cape Town areas "Cape Flats", "Southern Suburbs", etc.
+    enabled: true
+    max_pages: 15
+    province_id: 4
+    locations: {}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
+
+http:
+  min_delay_s: 5
+  max_delay_s: 10
+  timeout_s: 30
+  user_agent: "housebot/1.0 (personal use)"
+
+notify:
+  max_per_run: 25          # overflow gets one summary message
+  send_photo: true
+  quiet_if_none: false     # send "No new matches today" message?
+
+check:
+  per_run: 10              # listing pages re-checked each run for sold / under offer (favourites first)
+
+paths:
+  db: data/housebot.db     # relative to the working directory

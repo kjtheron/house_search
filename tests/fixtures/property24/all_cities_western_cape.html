@@ -1,0 +1,1691 @@
+
+
+<!DOCTYPE html>
+<!--[if IE]><html class=" p24_live p24_outdatedBrowser"><![endif]-->
+<!--[if !IE]><!-->
+<html class=" p24_live" lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<!--<![endif]-->
+
+<head>
+    
+<script>
+    window.loader = {
+        siteLoaded: false,
+        callbacks: [],
+        renderComponent: null, // set during onSiteLoaded
+
+        addCallback: function (callback) {
+            if (this.siteLoaded) {
+                callback(this.renderComponent);
+            } else {
+                this.callbacks.push(callback);
+            }
+        },
+
+        onSiteLoaded: function (renderComponent) {
+            this.renderComponent = renderComponent;
+            this.siteLoaded = true;
+
+            this.callbacks.forEach(callback => {
+                callback(this.renderComponent);
+            });
+            this.callbacks = [];
+        }
+    }
+
+    window.addCallback = function (callback) {
+        window.loader.addCallback(callback);
+    }
+
+    window.bundleContext = {"jQueryPrettyPhotoUrl":"/bundles/assets/ce309f4b5707.js","jQuerySmartCarouselUrl":"/bundles/assets/0d15ed8ab0b4.js"};
+</script>
+
+<script type="text/javascript">
+    window.clientAjaxActive = 0;
+    window.settings = {"isSmartphone":false,"inDevelopment":false,"isRecaptchaEnabled":true,"reCaptchaSiteKey":"6LcGHUEUAAAAAAfppsl05ypEC9L5KgUG3JYkpoF7","isUserLoggedIn":false,"applicationInsights":{"connectionString":"InstrumentationKey=d550bd73-e08b-4504-87e0-a62dc8835175;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=f9163f9a-ba0a-4b0b-8e66-863fa1a682d9","operationId":"de88fbea0d411d3985e03b65ba58736d","operationName":"GET Locations/AllCities","webInterface":"Desktop","appVersion":"51.6.1158.0","isEnabled":true},"npsEnabled":true,"getPageInitData":true};
+</script>
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/bundles/assets/jzn1l7h4qpby.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/bundles/assets/h4kwxlnroa3r.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/bundles/assets/df719djy3kux.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/bundles/assets/fg3rwalyo1ij.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/bundles/assets/jo0928uqr31v.woff2" />
+
+
+    <link rel="preconnect" href="https://www.google-analytics.com">
+    <link rel="dns-prefetch" href="https://dc.services.visualstudio.com">
+    <link rel="dns-prefetch" href="https://www.gstatic.com" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript">
+        window.antiForgeryToken = 'CfDJ8GBCS__IpUZHpFW4XQtSl_3vkspPrwWsiTmnVqJwcpnEIu1aeH3IIMCPksUL7uC4QCOb5G5gfAa95qOSAzQwa3F8EkgV5WGhMysp8UeGcCHzQ2-rM4dJl8HixMHrqkvtymGPDQwM-5dHPi6GSPc33SY';
+    </script>
+    <script src="/bundles/assets/h2irwhblgxqm.js" type="module"></script>
+<link rel="modulepreload" href="/bundles/assets/paaax4844qli.js" />
+<link rel="modulepreload" href="/bundles/assets/o7wlbu4emmor.js" />
+    <link rel="stylesheet" href="/bundles/assets/csr6nhd8hm3g.css"></link><link rel="stylesheet" href="/bundles/assets/g1seubflkn5y.css" />
+
+
+
+
+<script type="text/javascript">
+    (function (c, l, a, r, i, t, y) { c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }; t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i; y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y); })(window, document, "clarity", "script", "lbu6kh4bm0");
+
+
+                                                    addCallback(function () {
+                                                                    window.clarity("set", "Template", "Locations/AllCities");
+                                                    });
+                                
+
+                                                    addCallback(function () {
+                                                                    window.clarity("set", "UI Context Name", "Property24 Desktop");
+                                                    });
+                                
+
+                                                    addCallback(function () {
+                                                                    window.clarity("set", "User Status", "NotLoggedIn");
+                                                    });
+                                
+
+        addCallback(function () {
+            window.clarity("identify", "f3pg2awm1tul00tmx0uy4edj", undefined, "locations/allcities");
+        });
+</script>
+
+    
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        var ninjaTag = document.getElementById("ninja-script-tag");
+        if (!ninjaTag) {
+            (function () {
+                "use strict";
+                window.configTracking = {
+                    siteUrl: "www.property24.com",
+                    environment: "production",
+                    platform: window.settings.isSmartphone ? "m" : "d",
+					disablePropertyPropagation: true,
+					disableDefaultTrackPage: true,
+                };
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.id = "ninja-script-tag";
+                script.async = true;
+                script.src = ("https:" === document.location.protocol ? "https://" : "http://") + "ninja.data.olxcdn.com/ninja-property24.js";
+                (document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0]).appendChild(script);
+            }());
+        }
+
+		window.ninjaSettings = {"enabled":true,"pageName":"locations_allcities","customProperties":{"x-template":"Locations/AllCities","user_status":"Logged out","ui_context_name":"Property24 Desktop","listing_type":"Buy"}};
+    </script>
+
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LS4VP2QVQS&l=gaDataLayer"></script>
+<script>
+	window.gaDataLayer = window.gaDataLayer || [];
+	function gtag(){gaDataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-LS4VP2QVQS', {"traffic_type":"Live","user_id":"f3pg2awm1tul00tmx0uy4edj","template":"Locations/AllCities","user_status":"NotLoggedIn","ui_context_name":"Property24 Desktop"});
+
+    window.enabledPageLoadTimeLogging = true
+</script>
+
+
+
+    
+     
+
+    <title>Property for sale in Western Cape : Houses for sale in Western Cape : Property24.com</title>
+
+<meta name="description" content="Property for sale in Western Cape by estate agents. Start your Western Cape property search with the largest selection of houses, private property, flats, farms and repossessed property. Property24.com" />
+    <link rel="canonical" href="https://www.property24.com/for-sale/all-cities/western-cape/9" />
+<meta property="fb:app_id" content="159786687457759" />
+<meta property="og:title" content="Property for sale in Western Cape : Houses for sale in Western Cape : Property24.com" />
+<meta property="og:description" content="Property for sale in Western Cape by estate agents." />
+
+<meta property="og:image" content="https://www.property24.com/Content/images/Optimized/Logos/property24_logo_social_media_share.png?z=e2db65075e854545643" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="1200" />
+
+    <meta property="og:url" content="https://www.property24.com/for-sale/all-cities/western-cape/9" />
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+    <link rel="icon" type="image/png" sizes="57x57" href="/Content/images/Optimized/TouchIcons/Icon_57x57.png?z=5d61e61c3b21f036f855" />
+    <link rel="icon" type="image/png" sizes="144x144" href="/Content/images/Optimized/TouchIcons/Icon_144x144.png?z=a11e5a0924be7d93b93b" />
+    <link rel="icon" type="image/png" sizes="152x152" href="/Content/images/Optimized/TouchIcons/Icon_152x152.png?z=6dac7c360aba7b7a8c12" />
+    <link rel="icon" type="image/png" sizes="180x180" href="/Content/images/Optimized/TouchIcons/Icon_180x180.png?z=b8f47719917531a11a86" />
+
+    <link rel="apple-touch-icon" href="/Content/images/Optimized/TouchIcons/Icon_57x57.png?z=5d61e61c3b21f036f855" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/Content/images/Optimized/TouchIcons/Icon_72x72.png?z=efb43065a6414e844b80" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/Content/images/Optimized/TouchIcons/Icon_76x76.png?z=efb43065a6414e844b80" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/Content/images/Optimized/TouchIcons/Icon_114x114.png?z=5156f0000ddbb6e4218d" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/Content/images/Optimized/TouchIcons/Icon_120x120.png?z=f774ccf66eb9131dd712" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/Content/images/Optimized/TouchIcons/Icon_144x144.png?z=a11e5a0924be7d93b93b" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/Content/images/Optimized/TouchIcons/Icon_152x152.png?z=6dac7c360aba7b7a8c12" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/Content/images/Optimized/TouchIcons/Icon_180x180.png?z=b8f47719917531a11a86" />
+    <script>window.leadFormUserContext = {"leadContactMobileNumberAttributes":{"id":"","class":"form-control","placeholder":"Your Mobile Number"},"leadContactEmailAttributes":{"id":"","class":"form-control","autocomplete":"off","placeholder":"Your Email"},"isAdminLead":false,"userCanEditMobileNumber":true,"userCanEditEmail":true};</script>
+</head>
+<body>
+    <div class="p24_theme">
+            <div class="js_ie8_message p24_outdatedMessage">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            Please note that you are using an outdated browser which is not compatible with some elements of the site.
+                            We strongly urge you to update to <a href="https://www.microsoft.com/en-us/edge" title="Download Edge" target="_blank" rel="noopener noreferrer">Edge</a> for an optimal browsing experience.
+                        </div>
+                    </div>
+                </div>
+                <i class="js_ie8_dismiss fa fa-times"></i>
+            </div>
+
+
+        
+
+<nav class="navbar">
+    <div class="p24_nav-container">
+        <!-- Header -->
+        <header class="navbar-header">
+            <a href="/" title="Property for sale: Houses for sale: Property24" class="navbar-brand">
+                <img src="/Content/images/Optimized/Logos/property24_logo.svg?z=2cd369fe7776a4beed13" alt="Property for sale: Houses for sale: Property24" />
+            </a>
+        </header>
+
+        <!-- Navbar Links -->
+<ul class="nav navbar-nav">
+        <li class="dropdown full-width">
+            <a href="/for-sale" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Buy</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-4">
+                                    <p class="p24_heading">Looking to Buy?</p>
+                                                    <p>
+                                                        <a href="/for-sale/western-cape/9" 
+                                                                                                                >Property for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/commercial-property-for-sale/western-cape/9" 
+                                                                                                                >Commercial Property for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/for-sale/western-cape/9?sp=r%3dTrue" 
+                                                                                                                >Repossessions in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/for-sale/western-cape/9?sp=oa%3dTrue" 
+                                                                                                                >Auctions in Western Cape</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">&nbsp;</p>
+                                                    <p>
+                                                        <a href="/for-sale/western-cape/9?sp=os%3dTrue" 
+                                                                                                                >On Show in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/for-sale/western-cape/9?sp=rp%3dTrue" 
+                                                                                                                >Retirement Property for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/new-developments-for-sale/western-cape/9" 
+                                                                                                                >Developments for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/retirement-developments-for-sale/western-cape/9" 
+                                                                                                                >Retirement Developments for Sale in Western Cape</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">Helpful Links</p>
+                                                    <p>
+                                                        <a href="/property101/buyers-guide/become-a-first-time-home-owner" 
+                                                                                                                >Buyers Guide</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property-values/western-cape/9" 
+                                                                                                                >Sold House Prices in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/purchase-property-report" 
+                                                                                                                >Buy Property Reports</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/articles/advice/buying" 
+                                                                                                                >Property Advice for Buyers</a>
+                                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+        <li class="dropdown full-width">
+            <a href="/to-rent" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Rent</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-4">
+                                    <p class="p24_heading">Looking to Rent?</p>
+                                                    <p>
+                                                        <a href="/houses-to-rent/western-cape/9" 
+                                                                                                                >House to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/apartments-to-rent/western-cape/9" 
+                                                                                                                >Apartment / Flat to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/commercial-property-to-rent/western-cape/9" 
+                                                                                                                >Commercial Property to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/to-rent/western-cape/9?sp=rp%3dTrue" 
+                                                                                                                >Retirement Property to Rent in Western Cape</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">&nbsp;</p>
+                                                    <p>
+                                                        <a href="/new-developments-to-rent/western-cape/9" 
+                                                                                                                >Developments to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/retirement-developments-to-rent/western-cape/9" 
+                                                                                                                >Retirement Developments to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/estate-agencies/western-cape/9" 
+                                                                                                                >Find Letting Agents</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">List Privately</p>
+                                                    <p>
+                                                        <a href="/private-listing/rent-my-property" 
+                                                                                                                >Rent Your Property</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="https://rentalzone.property24.com/?utm_source=homepage_header&amp;utm_medium=link&amp;utm_campaign=consumer_subscription" 
+                                                                                                                >Tenant Screenings</a>
+                                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+        <li class="dropdown full-width">
+            <a href="/selling-your-property" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Sell</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-4">
+                                    <p class="p24_heading">Looking to Sell?</p>
+                                                    <p>
+                                                        <a href="/estate-agencies/western-cape/9" 
+                                                                                                                >Find Estate Agents in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/products/products-overview" 
+                                                                                                                >Agency Products</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">List Privately</p>
+                                                    <p>
+                                                        <a href="/private-listing/sell-my-property" 
+                                                                                                                >Sell Your Property</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4">
+                                    <p class="p24_heading">Helpful Links</p>
+                                                    <p>
+                                                        <a href="/selling-your-property" 
+                                                                                                                >Get a Free Property Valuation</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property-values/western-cape/9" 
+                                                                                                                >Sold House Prices in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property101/sellers-guide/the-best-time-to-sell-a-home" 
+                                                                                                                >Seller Guide</a>
+                                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+        <li class="dropdown full-width">
+            <a href="/commercial-property" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Commercial</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-4 p24_commercial_col1 col-xs-push-4">
+                                    <p class="p24_heading">Find Commercial Property</p>
+                                                    <p>
+                                                        <a href="/commercial-property-for-sale/western-cape/9" 
+                                                                                                                >Commercial Property for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/commercial-property-to-rent/western-cape/9" 
+                                                                                                                >Commercial Property to Rent in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/industrial-property-for-sale/western-cape/9" 
+                                                                                                                >Industrial Property for Sale in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/industrial-property-to-rent/western-cape/9" 
+                                                                                                                >Industrial Property to Rent in Western Cape</a>
+                                                    </p>
+                                </div>
+                                <div class="col-3 col-xs-push-4">
+                                    <p class="p24_heading">Helpful Links</p>
+                                                    <p>
+                                                        <a href="/articles/news/commercial" 
+                                                                                                                >Commercial Property News</a>
+                                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+        <li class="dropdown full-width">
+            <a href="/calculators/bond" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Calculators</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-3 p24_calculators_col1 col-xs-push-6">
+                                    <p class="p24_heading">Home Loan Calculators</p>
+                                                    <p>
+                                                        <a href="/calculators/bond" 
+                                                                                                                >Mortgage Bond Calculator</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/calculators/affordability" 
+                                                                                                                >Affordability Calculator</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/calculators/additionalpayment" 
+                                                                                                                >Additional Payment Calculator</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/calculators/bondcosts" 
+                                                                                                                >Bond and Transfer Calculator</a>
+                                                    </p>
+                                </div>
+                                <div class="col-3 p24_calculators_col2 col-xs-push-6">
+                                    <p class="p24_heading">&nbsp;</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+        <li class="dropdown full-width">
+            <a href="/articles/advice" class="dropdown-toggle js_link js_menuLink" data-hover="dropdown">
+                <span class="js_dropdownToggle">Advice</span>
+            </a>
+                    <div class="dropdown-menu" role="menu">
+                        <div class="p24_nav-items-container">
+                            <div class="row">
+                                <div class="col-4 p24_advice_col1 ">
+                                    <p class="p24_heading">Articles</p>
+                                                    <p>
+                                                        <a href="/articles/news" 
+                                                                                                                >Property News</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/articles/advice" 
+                                                                                                                >Property Advice</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property101/sellers-guide/the-best-time-to-sell-a-home" 
+                                                                                                                >Selling Your House</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property101/buyers-guide/become-a-first-time-home-owner" 
+                                                                                                                >Buyers Guide</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4 p24_advice_col2 ">
+                                    <p class="p24_heading">Helpful Links</p>
+                                                    <p>
+                                                        <a href="/property-tools-and-services" 
+                                                                                                                >Property Tools &amp; Services</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/property-values/western-cape/9" 
+                                                                                                                >Sold House Prices in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/purchase-property-report" 
+                                                                                                                >Buy Property Reports</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/products/products-overview" 
+                                                                                                                >Agency Products</a>
+                                                    </p>
+                                </div>
+                                <div class="col-4 p24_advice_col3 ">
+                                    <p class="p24_heading">&nbsp;</p>
+                                                    <p>
+                                                        <a href="/property-trends/western-cape/9" 
+                                                                                                                >Trends &amp; Statistics in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/estate-agencies/western-cape/9" 
+                                                                                                                >Find Estate Agents in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/attorney-firms/western-cape/9" 
+                                                                                                                >Find Attorneys in Western Cape</a>
+                                                    </p>
+                                                    <p>
+                                                        <a href="/agent-reviews-marketing" 
+                                                                                                                >Agent Ratings and Reviews</a>
+                                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        </li>
+</ul>
+<div class="p24_extra-links js_p24_extra-links">
+<div class="dropdown fill-width">
+    <div class="dropdown-toggle" data-hover="dropdown">
+        <a href="/private-listing/sell-my-property" class="p24_list-privately p24_extra-btn-navbar js_dropdownToggle js_menuLink">
+            List Privately
+        </a>
+    </div>
+    <div class="dropdown-menu" role="menu">
+        <div class="p24_nav-items-container">
+                <p><a href="/private-listing/sell-my-property">Sell Your Property</a></p>
+                <p><a href="/private-listing/rent-my-property">Rent Your Property</a></p>
+        </div>
+    </div>
+</div>
+        <div id="sign-in-portal">
+            <a href="#" id="sign-in-placeholder" class="p24_sign-up-navbar p24_extra-btn-navbar js_dropdownToggle">Sign in</a>
+        </div>
+
+</div>
+
+
+
+    </div>
+</nav>
+
+   <script type="text/javascript">
+       window.loader.addCallback((renderComponent) => renderComponent({"name":"DesktopHeader","type":"c"}));
+   </script>
+
+
+
+
+<div class="hidden-print p24_searchBarContainer p24_resultsSearch" data-react-component="Client_Search_Desktop_Search" id="4b3c4d4b27554d519d598e610315a219">
+    <div class="hidden-print p24_search p24_stationary">
+        <div class="p24_SearchForm container">
+            <div class="row">
+                <div class="col-12">
+                    <form autocomplete="off">
+                        <div class="p24_resultSearchType clearfix">
+                            <div class="p24_searchOverlap">
+                                <div class="btn-group p24_type">
+                                    <button class="btn btn-block btn-default dropdown-toggle p24_searchType" type="button">&nbsp;</button>
+                                </div>
+                                <div class="p24_overlayContainer">
+                                    <div class="p24_searchBox p24_searchBoxActive">
+                                        <ul class="token-input-list-facebook">
+                                            <li class="token-input-input-token-facebook"><input autocomplete="chrome-off" id="token-input-AutoCompleteItems" placeholder="Search for a City, Suburb or Web Reference" spellcheck="false" style="outline: none; width: 400px;" type="text" value=""></li>
+                                        </ul>
+                                        <span class="p24_mapBtn"><span>&nbsp;</span></span>
+
+                                    </div><button class="btn btn-danger"><span>&nbsp;</span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p24_advNavDropdowns"></div>
+                        <div class="clearfix"></div>
+                        <div class="p24_filter">
+                            <div class="p24_advanceSpacer p24_advanceSpacerHeight"></div>
+                            <div>
+                                <div class="p24_basicFilters">
+                                    <div class="btn-group P24_checkboxgroup p24_type p24_advanceSearchDropdownGroup">
+                                        <button class="dropdown-toggle p24_advanceSearchDropdown" type="button"><span class="type p24_singleLineEllipse"><span class="">&nbsp;</span></span></button>
+                                    </div>
+                                    <div class="p24_advanceSearchDropdownGroup btn-group p24_price P24_option">
+                                        <button class="dropdown-toggle p24_advanceSearchDropdown" type="button"><span class=""><span class="">&nbsp;</span></span></button>
+
+                                    </div>
+                                    <div class="p24_advanceSearchDropdownGroup btn-group p24_price P24_option">
+                                        <button class="dropdown-toggle p24_advanceSearchDropdown" type="button"><span class=""><span class="">&nbsp;</span></span></button>
+                                    </div>
+                                    <div class="p24_advanceSearchDropdownGroup btn-group p24_Bedrooms P24_option">
+                                        <button class="dropdown-toggle p24_advanceSearchDropdown" type="button"><span class=""><span class="">&nbsp;</span></span></button>
+                                    </div>
+                                    <div class="btn-group p24_advanceSearchMoreFilters">
+                                        <button type="button"><span>&nbsp;</span><span class="p24_count hide">0</span></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="application/json" data-props-for="4b3c4d4b27554d519d598e610315a219">
+    {"saveAlertCriteriaModel":{"provinceIds":[9],"searchType":0},"sizeRanges":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":" 50","value":50,"isCustom":false,"shortText":" 50"},{"text":" 100","value":100,"isCustom":false,"shortText":" 100"},{"text":" 150","value":150,"isCustom":false,"shortText":" 150"},{"text":" 200","value":200,"isCustom":false,"shortText":" 200"},{"text":" 300","value":300,"isCustom":false,"shortText":" 300"},{"text":" 400","value":400,"isCustom":false,"shortText":" 400"},{"text":" 500","value":500,"isCustom":false,"shortText":" 500"},{"text":"1 000","value":1000,"isCustom":false,"shortText":"1k"},{"text":"2 000","value":2000,"isCustom":false,"shortText":"2k"},{"text":"3 000","value":3000,"isCustom":false,"shortText":"3k"},{"text":"4 000","value":4000,"isCustom":false,"shortText":"4k"},{"text":"5 000","value":5000,"isCustom":false,"shortText":"5k"},{"text":"10 000","value":10000,"isCustom":false,"shortText":"10k"}],"erfSizeRanges":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":" 100","value":100,"isCustom":false,"shortText":" 100"},{"text":" 150","value":150,"isCustom":false,"shortText":" 150"},{"text":" 200","value":200,"isCustom":false,"shortText":" 200"},{"text":" 300","value":300,"isCustom":false,"shortText":" 300"},{"text":" 400","value":400,"isCustom":false,"shortText":" 400"},{"text":" 500","value":500,"isCustom":false,"shortText":" 500"},{"text":" 750","value":750,"isCustom":false,"shortText":" 750"},{"text":"1 000","value":1000,"isCustom":false,"shortText":"1k"},{"text":"1 500","value":1500,"isCustom":false,"shortText":"1.5k"},{"text":"2 000","value":2000,"isCustom":false,"shortText":"2k"},{"text":"3 000","value":3000,"isCustom":false,"shortText":"3k"},{"text":"5 000","value":5000,"isCustom":false,"shortText":"5k"},{"text":"10 000","value":10000,"isCustom":false,"shortText":"10k"}],"floorSizeRanges":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":" 20","value":20,"isCustom":false,"shortText":" 20"},{"text":" 40","value":40,"isCustom":false,"shortText":" 40"},{"text":" 60","value":60,"isCustom":false,"shortText":" 60"},{"text":" 80","value":80,"isCustom":false,"shortText":" 80"},{"text":" 100","value":100,"isCustom":false,"shortText":" 100"},{"text":" 150","value":150,"isCustom":false,"shortText":" 150"},{"text":" 200","value":200,"isCustom":false,"shortText":" 200"},{"text":" 250","value":250,"isCustom":false,"shortText":" 250"},{"text":" 300","value":300,"isCustom":false,"shortText":" 300"},{"text":" 350","value":350,"isCustom":false,"shortText":" 350"},{"text":" 400","value":400,"isCustom":false,"shortText":" 400"},{"text":" 450","value":450,"isCustom":false,"shortText":" 450"},{"text":" 500","value":500,"isCustom":false,"shortText":" 500"}],"numericDropdownItems":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":"1\u002B","value":1,"isCustom":false,"shortText":"1\u002B"},{"text":"2\u002B","value":2,"isCustom":false,"shortText":"2\u002B"},{"text":"3\u002B","value":3,"isCustom":false,"shortText":"3\u002B"},{"text":"4\u002B","value":4,"isCustom":false,"shortText":"4\u002B"},{"text":"5\u002B","value":5,"isCustom":false,"shortText":"5\u002B"}],"searchBarMode":1,"isDesktop":true,"isApple":false,"isHomepage":false,"sizeFromSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"sizeToSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"erfSizeFromSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"erfSizeToSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"floorSizeFromSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"floorSizeToSelect":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"isCommercialOrIndustrialOrVacant":false,"loggedInEmailAddress":"","hasFilterCriteria":true,"searchTypeDescription":"for sale","propertyTypeItems":[{"selected":false,"text":"House","value":4,"isCustom":false,"shortText":"House"},{"selected":false,"text":"Apartment / Flat","value":5,"isCustom":false,"shortText":"Apartment"},{"selected":false,"text":"Townhouse","value":6,"isCustom":false,"shortText":"Townhouse"},{"selected":false,"text":"Vacant Land / Plot","value":8,"isCustom":false,"shortText":"Vacant Land"},{"selected":false,"text":"Farm","value":10,"isCustom":false,"shortText":"Farm"},{"selected":false,"text":"Commercial Property","value":11,"isCustom":false,"shortText":"Commercial"},{"selected":false,"text":"Industrial Property","value":12,"isCustom":false,"shortText":"Industrial"}],"parkingSpacesSelectedItem":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"parkingTypeItems":[{"text":"Any","value":1,"isCustom":false,"shortText":"Any"},{"text":"Parking / Garage","value":2,"isCustom":false,"shortText":"Parking / Garage"},{"text":"Garage","value":3,"isCustom":false,"shortText":"Garage"}],"parkingTypeSelectedItem":{"text":"Any","value":1,"isCustom":false,"shortText":"Any"},"searchMapEnabled":true,"priceFromSelected":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"priceToSelected":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"priceFromSelectedForSale":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"priceToSelectedForSale":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"priceFromSelectedToLet":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"priceToSelectedToLet":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"bedroomsSelectedItem":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"bathroomsSelectedItem":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"developmentTypeSelected":{"text":"Sale","value":0,"isCustom":false,"shortText":"Sale"},"availableDevelopmentTypeItems":[{"text":"Sale","value":0,"isCustom":false,"shortText":"Sale"},{"text":"Rental","value":1,"isCustom":false,"shortText":"Rental"}],"furnishedStatusSelected":{"text":"Any","value":2,"isCustom":false,"shortText":"Any"},"availabilitySelected":{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},"propertyTypesDefaultDescription":"Any","homepageUri":"/","googleApiKey":"AIzaSyC2RktftcJdFvtKiGUWgQdEtRk2Jq1mNYg","searchMapFallbackLatitude":-30.969313,"searchMapFallbackLongitude":24.22227,"searchMapFallbackZoomLevel":5,"mapTilesPathQuery":"https://maps.property24.com/tiles/{levelOfDetail:int}/{x:int}/{y:int}?v=639255443192667919\u0026isSatelliteView={isSatelliteView:bool}","availablePropertyTypes":[{"id":4,"name":"House","description":"House","propertyTypeDescription":"House","pluralDescription":"Houses","facetedSearchDescription":"House","urlToken":"houses","numberOfBedroomsApplicable":true,"isEmptyLand":false,"countryId":1,"sortOrder":0,"useSizeFilter":false,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":true,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":5,"name":"ApartmentOrFlat","description":"Apartment / Flat","propertyTypeDescription":"Apartment","pluralDescription":"Apartments / Flats","facetedSearchDescription":"Apartment","urlToken":"apartments","numberOfBedroomsApplicable":true,"isEmptyLand":false,"countryId":1,"sortOrder":1,"useSizeFilter":false,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":false,"automaticGroupingAllowLocationComparison":false,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":6,"name":"Townhouse","description":"Townhouse","propertyTypeDescription":"Townhouse","pluralDescription":"Townhouses","facetedSearchDescription":"Townhouse","urlToken":"townhouses","numberOfBedroomsApplicable":true,"isEmptyLand":false,"countryId":1,"sortOrder":2,"useSizeFilter":false,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":true,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":8,"name":"VacantLandOrPlot","description":"Vacant Land / Plot","propertyTypeDescription":"Vacant Land","pluralDescription":"Vacant Land / Plots","facetedSearchDescription":"Vacant Land","urlToken":"vacant-land","numberOfBedroomsApplicable":false,"isEmptyLand":true,"countryId":1,"sortOrder":3,"useSizeFilter":true,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":false,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":10,"name":"Farm","description":"Farm","propertyTypeDescription":"Farm","pluralDescription":"Farms","facetedSearchDescription":"Farm","urlToken":"farms","numberOfBedroomsApplicable":false,"isEmptyLand":false,"countryId":1,"sortOrder":4,"useSizeFilter":false,"suburbBoundsBufferDistance":25000,"allowsGrouping":true,"allowsAutomaticGrouping":true,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":11,"name":"Commercial","description":"Commercial Property","propertyTypeDescription":"Commercial Property","pluralDescription":"Commercial Property","facetedSearchDescription":"Commercial","urlToken":"commercial-property","numberOfBedroomsApplicable":false,"isEmptyLand":false,"countryId":1,"sortOrder":5,"useSizeFilter":true,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":true,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100},{"id":12,"name":"Industrial","description":"Industrial Property","propertyTypeDescription":"Industrial Property","pluralDescription":"Industrial Property","facetedSearchDescription":"Industrial","urlToken":"industrial-property","numberOfBedroomsApplicable":false,"isEmptyLand":false,"countryId":1,"sortOrder":6,"useSizeFilter":true,"suburbBoundsBufferDistance":10000,"allowsGrouping":true,"allowsAutomaticGrouping":true,"automaticGroupingAllowLocationComparison":true,"automaticGroupingGeolocationMaxDistanceMetres":100}],"availabilityItems":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":"Now","value":1,"isCustom":false,"shortText":"Now"},{"text":"October","value":2,"isCustom":false,"shortText":"October"},{"text":"November","value":3,"isCustom":false,"shortText":"November"},{"text":"December","value":4,"isCustom":false,"shortText":"December"}],"furnishedStatusItems":[{"text":"Any","value":2,"isCustom":false,"shortText":"Any"},{"text":"Yes","value":1,"isCustom":false,"shortText":"Yes"},{"text":"No","value":0,"isCustom":false,"shortText":"No"}],"sortOrder":0,"priceRangeForSale":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":"R 100 000","value":100000,"isCustom":false,"shortText":"R 100k"},{"text":"R 150 000","value":150000,"isCustom":false,"shortText":"R 150k"},{"text":"R 200 000","value":200000,"isCustom":false,"shortText":"R 200k"},{"text":"R 250 000","value":250000,"isCustom":false,"shortText":"R 250k"},{"text":"R 300 000","value":300000,"isCustom":false,"shortText":"R 300k"},{"text":"R 350 000","value":350000,"isCustom":false,"shortText":"R 350k"},{"text":"R 400 000","value":400000,"isCustom":false,"shortText":"R 400k"},{"text":"R 450 000","value":450000,"isCustom":false,"shortText":"R 450k"},{"text":"R 500 000","value":500000,"isCustom":false,"shortText":"R 500k"},{"text":"R 600 000","value":600000,"isCustom":false,"shortText":"R 600k"},{"text":"R 700 000","value":700000,"isCustom":false,"shortText":"R 700k"},{"text":"R 800 000","value":800000,"isCustom":false,"shortText":"R 800k"},{"text":"R 900 000","value":900000,"isCustom":false,"shortText":"R 900k"},{"text":"R 1 000 000","value":1000000,"isCustom":false,"shortText":"R 1m"},{"text":"R 1 250 000","value":1250000,"isCustom":false,"shortText":"R 1.25m"},{"text":"R 1 500 000","value":1500000,"isCustom":false,"shortText":"R 1.5m"},{"text":"R 1 750 000","value":1750000,"isCustom":false,"shortText":"R 1.75m"},{"text":"R 2 000 000","value":2000000,"isCustom":false,"shortText":"R 2m"},{"text":"R 2 500 000","value":2500000,"isCustom":false,"shortText":"R 2.5m"},{"text":"R 3 000 000","value":3000000,"isCustom":false,"shortText":"R 3m"},{"text":"R 3 500 000","value":3500000,"isCustom":false,"shortText":"R 3.5m"},{"text":"R 4 000 000","value":4000000,"isCustom":false,"shortText":"R 4m"},{"text":"R 4 500 000","value":4500000,"isCustom":false,"shortText":"R 4.5m"},{"text":"R 5 000 000","value":5000000,"isCustom":false,"shortText":"R 5m"},{"text":"R 6 000 000","value":6000000,"isCustom":false,"shortText":"R 6m"},{"text":"R 7 000 000","value":7000000,"isCustom":false,"shortText":"R 7m"},{"text":"R 8 000 000","value":8000000,"isCustom":false,"shortText":"R 8m"},{"text":"R 9 000 000","value":9000000,"isCustom":false,"shortText":"R 9m"},{"text":"R 10 000 000","value":10000000,"isCustom":false,"shortText":"R 10m"},{"text":"R 15 000 000","value":15000000,"isCustom":false,"shortText":"R 15m"}],"priceRangeToLet":[{"text":"Any","value":0,"isCustom":false,"shortText":"Any"},{"text":"R 1 000","value":1000,"isCustom":false,"shortText":"R 1k"},{"text":"R 1 500","value":1500,"isCustom":false,"shortText":"R 1.5k"},{"text":"R 2 000","value":2000,"isCustom":false,"shortText":"R 2k"},{"text":"R 2 500","value":2500,"isCustom":false,"shortText":"R 2.5k"},{"text":"R 3 000","value":3000,"isCustom":false,"shortText":"R 3k"},{"text":"R 3 500","value":3500,"isCustom":false,"shortText":"R 3.5k"},{"text":"R 4 000","value":4000,"isCustom":false,"shortText":"R 4k"},{"text":"R 4 500","value":4500,"isCustom":false,"shortText":"R 4.5k"},{"text":"R 5 000","value":5000,"isCustom":false,"shortText":"R 5k"},{"text":"R 6 000","value":6000,"isCustom":false,"shortText":"R 6k"},{"text":"R 7 000","value":7000,"isCustom":false,"shortText":"R 7k"},{"text":"R 8 000","value":8000,"isCustom":false,"shortText":"R 8k"},{"text":"R 9 000","value":9000,"isCustom":false,"shortText":"R 9k"},{"text":"R 10 000","value":10000,"isCustom":false,"shortText":"R 10k"},{"text":"R 11 000","value":11000,"isCustom":false,"shortText":"R 11k"},{"text":"R 12 000","value":12000,"isCustom":false,"shortText":"R 12k"},{"text":"R 13 000","value":13000,"isCustom":false,"shortText":"R 13k"},{"text":"R 14 000","value":14000,"isCustom":false,"shortText":"R 14k"},{"text":"R 15 000","value":15000,"isCustom":false,"shortText":"R 15k"},{"text":"R 16 000","value":16000,"isCustom":false,"shortText":"R 16k"},{"text":"R 17 000","value":17000,"isCustom":false,"shortText":"R 17k"},{"text":"R 18 000","value":18000,"isCustom":false,"shortText":"R 18k"},{"text":"R 19 000","value":19000,"isCustom":false,"shortText":"R 19k"},{"text":"R 20 000","value":20000,"isCustom":false,"shortText":"R 20k"},{"text":"R 25 000","value":25000,"isCustom":false,"shortText":"R 25k"},{"text":"R 30 000","value":30000,"isCustom":false,"shortText":"R 30k"},{"text":"R 35 000","value":35000,"isCustom":false,"shortText":"R 35k"},{"text":"R 40 000","value":40000,"isCustom":false,"shortText":"R 40k"},{"text":"R 50 000","value":50000,"isCustom":false,"shortText":"R 50k"},{"text":"R 60 000","value":60000,"isCustom":false,"shortText":"R 60k"},{"text":"R 70 000","value":70000,"isCustom":false,"shortText":"R 70k"},{"text":"R 80 000","value":80000,"isCustom":false,"shortText":"R 80k"}],"autoCompleteItems":[{"id":9,"name":"Western Cape","type":5,"source":0,"normalizedName":"westerncape","normalizedParentName":""}],"contextSearchBarLinkItemModels":[{"url":"/for-sale/western-cape/9","title":"For Sale","selected":true,"contextSearchType":0},{"url":"/to-rent/western-cape/9","title":"To Rent","selected":false,"contextSearchType":1},{"url":"/property-values/western-cape/9","title":"Sold Prices","selected":false,"contextSearchType":2},{"url":"/new-developments-for-sale/western-cape/9","title":"Developments","selected":false,"contextSearchType":11},{"url":"/estate-agencies/western-cape/9","title":"Estate Agencies","selected":false,"contextSearchType":6},{"url":"/attorney-firms/western-cape/9","title":"Attorney","selected":false,"contextSearchType":7},{"url":"/property-trends/western-cape/9","title":"Trends","selected":false,"contextSearchType":15},{"url":"/articles/news","title":"News","selected":false,"contextSearchType":8}],"searchType":0,"allowSearchTypeAndSearchContextOverwriteFromSavedSearch":false,"searchContextType":0,"autoCompleteSearchType":0,"heading":"Find Property for Sale","rentalRatesItems":[{"selected":false,"text":"Monthly","value":0,"isCustom":false,"shortText":"Monthly"},{"selected":false,"text":"Weekly","value":1,"isCustom":false,"shortText":"Weekly"},{"selected":false,"text":"Daily","value":2,"isCustom":false,"shortText":"Daily"},{"selected":false,"text":"Yearly","value":3,"isCustom":false,"shortText":"Yearly"},{"selected":false,"text":"per m\u00B2","value":4,"isCustom":false,"shortText":"per m\u00B2"}],"availableRentalRates":{"Month":"Monthly","Week":"Weekly","Day":"Daily","Year":"Yearly","SquareMetre":"per m\u00B2"},"rentalRatesDefaultDescription":"Any","allowMapPinsForUser":false,"termsAndConditionsUrl":"/terms-and-conditions","privacyPolicyUrl":"/privacy-policy","showSaveSearch":false}
+</script>
+
+
+
+
+
+<div class="p24_results">    
+    <div class="p24_breadCrumbTop">
+
+    <h1 class="p24_breadcrumbHeader">All Cities in Western Cape</h1>
+
+<nav id="breadCrumbContainer" class="hidden-print p24_breadCrumb" aria-label="Breadcrumb">
+    <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/" title="Property for Sale: Houses for sale: Property24">Property for Sale</a>
+                    </li>
+                    <li>&gt;</li>
+                    <li class="breadcrumb-item">
+                        <a href="/for-sale/western-cape/9" title="Property for sale in Western Cape : Property and houses for sale in Western Cape : Property24.com">Western Cape</a>
+                    </li>
+                    <li>&gt;</li>
+                    <li class="breadcrumb-item active" aria-current="page">All Cities in Western Cape</li>
+    </ol>
+</nav>    </div>
+    <div class="p24_resultsGrid p24_allAreasContainer">
+        <div class="p24_tilesContainer">
+
+<form action="/Results/MultipleAreas?sp=st%3DForSale%26pid%3D9" id="area-checkbox-form" method="post">        <div class="row">
+            <div class="col-9">
+                <div class="form-group">
+                    <input data-val="true" data-val-required="The MultipleAreasType field is required." id="MultipleAreasType" name="MultipleAreasType" type="hidden" value="City" />
+                    <input data-val="true" data-val-required="The AreaParentId field is required." id="AreaParentId" name="AreaParentId" type="hidden" value="9" />
+
+                    <input type="submit" value="View Properties" title="View Properties" class="btn btn-success p24_btnDefault" />
+
+                    <label class="text-danger p24_areasStatus" id="areas-status"></label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row">
+                                <div class="col-4">
+                                    <div class="js_items p24_multiple">
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="653" />
+                                                    <a href="/for-sale/agulhas/western-cape/653" title="Property and houses for sale in Agulhas : Agulhas Property : Property24.com">Agulhas</a>
+
+                                                    <span> (73)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="334" />
+                                                    <a href="/for-sale/albertinia/western-cape/334" title="Property and houses for sale in Albertinia : Albertinia Property : Property24.com">Albertinia</a>
+
+                                                    <span> (242)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="409" />
+                                                    <a href="/for-sale/arniston/western-cape/409" title="Property and houses for sale in Arniston : Arniston Property : Property24.com">Arniston</a>
+
+                                                    <span> (10)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="338" />
+                                                    <a href="/for-sale/ashton/western-cape/338" title="Property and houses for sale in Ashton : Ashton Property : Property24.com">Ashton</a>
+
+                                                    <span> (33)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="424" />
+                                                    <a href="/for-sale/atlantis/western-cape/424" title="Property and houses for sale in Atlantis : Atlantis Property : Property24.com">Atlantis</a>
+
+                                                    <span> (49)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="421" />
+                                                    <a href="/for-sale/aurora/western-cape/421" title="Property and houses for sale in Aurora : Aurora Property : Property24.com">Aurora</a>
+
+                                                    <span> (18)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="407" />
+                                                    <a href="/for-sale/baardskeerdersbos/western-cape/407" title="Property and houses for sale in Baardskeerdersbos : Baardskeerdersbos Property : Property24.com">Baardskeerdersbos</a>
+
+                                                    <span> (31)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="342" />
+                                                    <a href="/for-sale/barrydale/western-cape/342" title="Property and houses for sale in Barrydale : Barrydale Property : Property24.com">Barrydale</a>
+
+                                                    <span> (32)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="468" />
+                                                    <a href="/for-sale/beaufort-west/western-cape/468" title="Property and houses for sale in Beaufort West : Beaufort West Property : Property24.com">Beaufort West</a>
+
+                                                    <span> (51)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="441" />
+                                                    <a href="/for-sale/bellville/western-cape/441" title="Property and houses for sale in Bellville : Bellville Property : Property24.com">Bellville</a>
+
+                                                    <span> (409)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="394" />
+                                                    <a href="/for-sale/bettys-bay/western-cape/394" title="Property and houses for sale in Bettys Bay : Bettys Bay Property : Property24.com">Bettys Bay</a>
+
+                                                    <span> (95)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="490" />
+                                                    <a href="/for-sale/bitterfontein/western-cape/490" title="Property and houses for sale in Bitterfontein : Bitterfontein Property : Property24.com">Bitterfontein</a>
+
+                                                    <span> (2)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="456" />
+                                                    <a href="/for-sale/blackheath/western-cape/456" title="Property and houses for sale in Blackheath : Blackheath Property : Property24.com">Blackheath</a>
+
+                                                    <span> (37)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="658" />
+                                                    <a href="/for-sale/blouberg/western-cape/658" title="Property and houses for sale in Blouberg : Blouberg Property : Property24.com">Blouberg</a>
+
+                                                    <span> (1506)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="457" />
+                                                    <a href="/for-sale/blue-downs/western-cape/457" title="Property and houses for sale in Blue Downs : Blue Downs Property : Property24.com">Blue Downs</a>
+
+                                                    <span> (190)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="340" />
+                                                    <a href="/for-sale/bonnievale/western-cape/340" title="Property and houses for sale in Bonnievale : Bonnievale Property : Property24.com">Bonnievale</a>
+
+                                                    <span> (22)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="693" />
+                                                    <a href="/for-sale/bot-river/western-cape/693" title="Property and houses for sale in Bot River : Bot River Property : Property24.com">Bot River</a>
+
+                                                    <span> (39)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="454" />
+                                                    <a href="/for-sale/brackenfell/western-cape/454" title="Property and houses for sale in Brackenfell : Brackenfell Property : Property24.com">Brackenfell</a>
+
+                                                    <span> (147)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="408" />
+                                                    <a href="/for-sale/bredasdorp/western-cape/408" title="Property and houses for sale in Bredasdorp : Bredasdorp Property : Property24.com">Bredasdorp</a>
+
+                                                    <span> (66)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="397" />
+                                                    <a href="/for-sale/caledon/western-cape/397" title="Property and houses for sale in Caledon : Caledon Property : Property24.com">Caledon</a>
+
+                                                    <span> (111)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="329" />
+                                                    <a href="/for-sale/calitzdorp/western-cape/329" title="Property and houses for sale in Calitzdorp : Calitzdorp Property : Property24.com">Calitzdorp</a>
+
+                                                    <span> (61)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="432" />
+                                                    <a href="/for-sale/cape-town/western-cape/432" title="Property and houses for sale in Cape Town : Cape Town Property : Property24.com">Cape Town</a>
+
+                                                    <span> (3653)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="348" />
+                                                    <a href="/for-sale/ceres/western-cape/348" title="Property and houses for sale in Ceres : Ceres Property : Property24.com">Ceres</a>
+
+                                                    <span> (30)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="422" />
+                                                    <a href="/for-sale/citrusdal/western-cape/422" title="Property and houses for sale in Citrusdal : Citrusdal Property : Property24.com">Citrusdal</a>
+
+                                                    <span> (3)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="482" />
+                                                    <a href="/for-sale/clanwilliam/western-cape/482" title="Property and houses for sale in Clanwilliam : Clanwilliam Property : Property24.com">Clanwilliam</a>
+
+                                                    <span> (60)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="2504" />
+                                                    <a href="/for-sale/darling/western-cape/2504" title="Property and houses for sale in Darling : Darling Property : Property24.com">Darling</a>
+
+                                                    <span> (120)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="464" />
+                                                    <a href="/for-sale/de-doorns/western-cape/464" title="Property and houses for sale in De Doorns : De Doorns Property : Property24.com">De Doorns</a>
+
+                                                    <span> (13)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1816" />
+                                                    <a href="/for-sale/delft/western-cape/1816" title="Property and houses for sale in Delft : Delft Property : Property24.com">Delft</a>
+
+                                                    <span> (121)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="439" />
+                                                    <a href="/for-sale/durbanville/western-cape/439" title="Property and houses for sale in Durbanville : Durbanville Property : Property24.com">Durbanville</a>
+
+                                                    <span> (227)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="458" />
+                                                    <a href="/for-sale/eersterivier/western-cape/458" title="Property and houses for sale in Eersterivier : Eersterivier Property : Property24.com">Eersterivier</a>
+
+                                                    <span> (117)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="647" />
+                                                    <a href="/for-sale/elands-bay/western-cape/647" title="Property and houses for sale in Elands Bay : Elands Bay Property : Property24.com">Elands Bay</a>
+
+                                                    <span> (21)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="475" />
+                                                    <a href="/for-sale/fish-hoek/western-cape/475" title="Property and houses for sale in Fish Hoek : Fish Hoek Property : Property24.com">Fish Hoek</a>
+
+                                                    <span> (100)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="461" />
+                                                    <a href="/for-sale/franschhoek/western-cape/461" title="Property and houses for sale in Franschhoek : Franschhoek Property : Property24.com">Franschhoek</a>
+
+                                                    <span> (79)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="403" />
+                                                    <a href="/for-sale/gansbaai/western-cape/403" title="Property and houses for sale in Gansbaai : Gansbaai Property : Property24.com">Gansbaai</a>
+
+                                                    <span> (324)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="321" />
+                                                    <a href="/for-sale/george/western-cape/321" title="Property and houses for sale in George : George Property : Property24.com">George</a>
+
+                                                    <span> (986)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="435" />
+                                                    <a href="/for-sale/goodwood/western-cape/435" title="Property and houses for sale in Goodwood : Goodwood Property : Property24.com">Goodwood</a>
+
+                                                    <span> (233)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="395" />
+                                                    <a href="/for-sale/gordons-bay/western-cape/395" title="Property and houses for sale in Gordons Bay : Gordons Bay Property : Property24.com">Gordons Bay</a>
+
+                                                    <span> (281)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="335" />
+                                                    <a href="/for-sale/gouritsmond/western-cape/335" title="Property and houses for sale in Gouritsmond : Gouritsmond Property : Property24.com">Gouritsmond</a>
+
+                                                    <span> (39)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="680" />
+                                                    <a href="/for-sale/graafwater/western-cape/680" title="Property and houses for sale in Graafwater : Graafwater Property : Property24.com">Graafwater</a>
+
+                                                    <span> (27)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="396" />
+                                                    <a href="/for-sale/grabouw/western-cape/396" title="Property and houses for sale in Grabouw : Grabouw Property : Property24.com">Grabouw</a>
+
+                                                    <span> (43)</span>
+                                            </label>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="js_items p24_multiple">
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="816" />
+                                                    <a href="/for-sale/groot-brakrivier/western-cape/816" title="Property and houses for sale in Groot Brakrivier : Groot Brakrivier Property : Property24.com">Groot Brakrivier</a>
+
+                                                    <span> (453)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="783" />
+                                                    <a href="/for-sale/hartenbos/western-cape/783" title="Property and houses for sale in Hartenbos : Hartenbos Property : Property24.com">Hartenbos</a>
+
+                                                    <span> (506)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="330" />
+                                                    <a href="/for-sale/heidelberg/western-cape/330" title="Property and houses for sale in Heidelberg : Heidelberg Property : Property24.com">Heidelberg</a>
+
+                                                    <span> (66)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="400" />
+                                                    <a href="/for-sale/hermanus/western-cape/400" title="Property and houses for sale in Hermanus : Hermanus Property : Property24.com">Hermanus</a>
+
+                                                    <span> (539)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="2503" />
+                                                    <a href="/for-sale/hermon/western-cape/2503" title="Property and houses for sale in Hermon : Hermon Property : Property24.com">Hermon</a>
+
+                                                    <span> (2)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="426" />
+                                                    <a href="/for-sale/hopefield/western-cape/426" title="Property and houses for sale in Hopefield : Hopefield Property : Property24.com">Hopefield</a>
+
+                                                    <span> (99)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="615" />
+                                                    <a href="/for-sale/hout-bay/western-cape/615" title="Property and houses for sale in Hout Bay : Hout Bay Property : Property24.com">Hout Bay</a>
+
+                                                    <span> (112)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="692" />
+                                                    <a href="/for-sale/jacobsbaai/western-cape/692" title="Property and houses for sale in Jacobsbaai : Jacobsbaai Property : Property24.com">Jacobsbaai</a>
+
+                                                    <span> (50)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="316" />
+                                                    <a href="/for-sale/khayelitsha/western-cape/316" title="Property and houses for sale in Khayelitsha : Khayelitsha Property : Property24.com">Khayelitsha</a>
+
+                                                    <span> (148)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1718" />
+                                                    <a href="/for-sale/klawer/western-cape/1718" title="Property and houses for sale in Klawer : Klawer Property : Property24.com">Klawer</a>
+
+                                                    <span> (26)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="676" />
+                                                    <a href="/for-sale/klein-brak-rivier/western-cape/676" title="Property and houses for sale in Klein Brak Rivier : Klein Brak Rivier Property : Property24.com">Klein Brak Rivier</a>
+
+                                                    <span> (93)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="398" />
+                                                    <a href="/for-sale/kleinmond/western-cape/398" title="Property and houses for sale in Kleinmond : Kleinmond Property : Property24.com">Kleinmond</a>
+
+                                                    <span> (126)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="418" />
+                                                    <a href="/for-sale/klipheuwel/western-cape/418" title="Property and houses for sale in Klipheuwel : Klipheuwel Property : Property24.com">Klipheuwel</a>
+
+                                                    <span> (2)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="322" />
+                                                    <a href="/for-sale/knysna/western-cape/322" title="Property and houses for sale in Knysna : Knysna Property : Property24.com">Knysna</a>
+
+                                                    <span> (527)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="478" />
+                                                    <a href="/for-sale/kommetjie/western-cape/478" title="Property and houses for sale in Kommetjie : Kommetjie Property : Property24.com">Kommetjie</a>
+
+                                                    <span> (36)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="455" />
+                                                    <a href="/for-sale/kraaifontein/western-cape/455" title="Property and houses for sale in Kraaifontein : Kraaifontein Property : Property24.com">Kraaifontein</a>
+
+                                                    <span> (290)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="411" />
+                                                    <a href="/for-sale/kuils-river/western-cape/411" title="Property and houses for sale in Kuils River : Kuils River Property : Property24.com">Kuils River</a>
+
+                                                    <span> (301)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="328" />
+                                                    <a href="/for-sale/ladismith/western-cape/328" title="Property and houses for sale in Ladismith : Ladismith Property : Property24.com">Ladismith</a>
+
+                                                    <span> (122)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="327" />
+                                                    <a href="/for-sale/laingsburg/western-cape/327" title="Property and houses for sale in Laingsburg : Laingsburg Property : Property24.com">Laingsburg</a>
+
+                                                    <span> (21)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="483" />
+                                                    <a href="/for-sale/lamberts-bay/western-cape/483" title="Property and houses for sale in Lamberts Bay : Lamberts Bay Property : Property24.com">Lamberts Bay</a>
+
+                                                    <span> (66)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="427" />
+                                                    <a href="/for-sale/langebaan/western-cape/427" title="Property and houses for sale in Langebaan : Langebaan Property : Property24.com">Langebaan</a>
+
+                                                    <span> (687)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="486" />
+                                                    <a href="/for-sale/lutzville/western-cape/486" title="Property and houses for sale in Lutzville : Lutzville Property : Property24.com">Lutzville</a>
+
+                                                    <span> (4)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1820" />
+                                                    <a href="/for-sale/macassar/western-cape/1820" title="Property and houses for sale in Macassar : Macassar Property : Property24.com">Macassar</a>
+
+                                                    <span> (33)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="414" />
+                                                    <a href="/for-sale/malmesbury/western-cape/414" title="Property and houses for sale in Malmesbury : Malmesbury Property : Property24.com">Malmesbury</a>
+
+                                                    <span> (259)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="337" />
+                                                    <a href="/for-sale/mcgregor/western-cape/337" title="Property and houses for sale in Mcgregor : Mcgregor Property : Property24.com">Mcgregor</a>
+
+                                                    <span> (37)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="434" />
+                                                    <a href="/for-sale/melkbosstrand/western-cape/434" title="Property and houses for sale in Melkbosstrand : Melkbosstrand Property : Property24.com">Melkbosstrand</a>
+
+                                                    <span> (75)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="433" />
+                                                    <a href="/for-sale/milnerton/western-cape/433" title="Property and houses for sale in Milnerton : Milnerton Property : Property24.com">Milnerton</a>
+
+                                                    <span> (563)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="463" />
+                                                    <a href="/for-sale/mitchells-plain/western-cape/463" title="Property and houses for sale in Mitchells Plain : Mitchells Plain Property : Property24.com">Mitchells Plain</a>
+
+                                                    <span> (298)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="339" />
+                                                    <a href="/for-sale/montagu/western-cape/339" title="Property and houses for sale in Montagu : Montagu Property : Property24.com">Montagu</a>
+
+                                                    <span> (97)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="419" />
+                                                    <a href="/for-sale/moorreesburg/western-cape/419" title="Property and houses for sale in Moorreesburg : Moorreesburg Property : Property24.com">Moorreesburg</a>
+
+                                                    <span> (86)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="317" />
+                                                    <a href="/for-sale/mossel-bay/western-cape/317" title="Property and houses for sale in Mossel Bay : Mossel Bay Property : Property24.com">Mossel Bay</a>
+
+                                                    <span> (1302)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="471" />
+                                                    <a href="/for-sale/murraysburg/western-cape/471" title="Property and houses for sale in Murraysburg : Murraysburg Property : Property24.com">Murraysburg</a>
+
+                                                    <span> (11)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="406" />
+                                                    <a href="/for-sale/napier/western-cape/406" title="Property and houses for sale in Napier : Napier Property : Property24.com">Napier</a>
+
+                                                    <span> (51)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="479" />
+                                                    <a href="/for-sale/noordhoek/western-cape/479" title="Property and houses for sale in Noordhoek : Noordhoek Property : Property24.com">Noordhoek</a>
+
+                                                    <span> (62)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="326" />
+                                                    <a href="/for-sale/oudtshoorn/western-cape/326" title="Property and houses for sale in Oudtshoorn : Oudtshoorn Property : Property24.com">Oudtshoorn</a>
+
+                                                    <span> (318)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="344" />
+                                                    <a href="/for-sale/paarl/western-cape/344" title="Property and houses for sale in Paarl : Paarl Property : Property24.com">Paarl</a>
+
+                                                    <span> (723)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="436" />
+                                                    <a href="/for-sale/parow/western-cape/436" title="Property and houses for sale in Parow : Parow Property : Property24.com">Parow</a>
+
+                                                    <span> (321)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="429" />
+                                                    <a href="/for-sale/paternoster/western-cape/429" title="Property and houses for sale in Paternoster : Paternoster Property : Property24.com">Paternoster</a>
+
+                                                    <span> (115)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="420" />
+                                                    <a href="/for-sale/piketberg/western-cape/420" title="Property and houses for sale in Piketberg : Piketberg Property : Property24.com">Piketberg</a>
+
+                                                    <span> (45)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="325" />
+                                                    <a href="/for-sale/plettenberg-bay/western-cape/325" title="Property and houses for sale in Plettenberg Bay : Plettenberg Bay Property : Property24.com">Plettenberg Bay</a>
+
+                                                    <span> (320)</span>
+                                            </label>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="js_items p24_multiple">
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="345" />
+                                                    <a href="/for-sale/porterville/western-cape/345" title="Property and houses for sale in Porterville : Porterville Property : Property24.com">Porterville</a>
+
+                                                    <span> (29)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="467" />
+                                                    <a href="/for-sale/prince-albert/western-cape/467" title="Property and houses for sale in Prince Albert : Prince Albert Property : Property24.com">Prince Albert</a>
+
+                                                    <span> (131)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="691" />
+                                                    <a href="/for-sale/pringle-bay/western-cape/691" title="Property and houses for sale in Pringle Bay : Pringle Bay Property : Property24.com">Pringle Bay</a>
+
+                                                    <span> (67)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1817" />
+                                                    <a href="/for-sale/redelinghuys/western-cape/1817" title="Property and houses for sale in Redelinghuys : Redelinghuys Property : Property24.com">Redelinghuys</a>
+
+                                                    <span> (16)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1726" />
+                                                    <a href="/for-sale/riebeek-valley/western-cape/1726" title="Property and houses for sale in Riebeek Valley : Riebeek Valley Property : Property24.com">Riebeek Valley</a>
+
+                                                    <span> (94)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="671" />
+                                                    <a href="/for-sale/riversdale/western-cape/671" title="Property and houses for sale in Riversdale : Riversdale Property : Property24.com">Riversdale</a>
+
+                                                    <span> (163)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="2385" />
+                                                    <a href="/for-sale/riviersonderend/western-cape/2385" title="Property and houses for sale in Riviersonderend : Riviersonderend Property : Property24.com">Riviersonderend</a>
+
+                                                    <span> (25)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="336" />
+                                                    <a href="/for-sale/robertson/western-cape/336" title="Property and houses for sale in Robertson : Robertson Property : Property24.com">Robertson</a>
+
+                                                    <span> (213)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="399" />
+                                                    <a href="/for-sale/rooi-els/western-cape/399" title="Property and houses for sale in Rooi Els : Rooi Els Property : Property24.com">Rooi Els</a>
+
+                                                    <span> (22)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="410" />
+                                                    <a href="/for-sale/saldanha/western-cape/410" title="Property and houses for sale in Saldanha : Saldanha Property : Property24.com">Saldanha</a>
+
+                                                    <span> (526)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="652" />
+                                                    <a href="/for-sale/scarborough/western-cape/652" title="Property and houses for sale in Scarborough : Scarborough Property : Property24.com">Scarborough</a>
+
+                                                    <span> (13)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="324" />
+                                                    <a href="/for-sale/sedgefield/western-cape/324" title="Property and houses for sale in Sedgefield : Sedgefield Property : Property24.com">Sedgefield</a>
+
+                                                    <span> (167)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="401" />
+                                                    <a href="/for-sale/simons-town/western-cape/401" title="Property and houses for sale in Simons Town : Simons Town Property : Property24.com">Simons Town</a>
+
+                                                    <span> (56)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="390" />
+                                                    <a href="/for-sale/somerset-west/western-cape/390" title="Property and houses for sale in Somerset West : Somerset West Property : Property24.com">Somerset West</a>
+
+                                                    <span> (630)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="431" />
+                                                    <a href="/for-sale/st-helena-bay/western-cape/431" title="Property and houses for sale in St Helena Bay : St Helena Bay Property : Property24.com">St Helena Bay</a>
+
+                                                    <span> (1626)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="2179" />
+                                                    <a href="/for-sale/stanford/western-cape/2179" title="Property and houses for sale in Stanford : Stanford Property : Property24.com">Stanford</a>
+
+                                                    <span> (41)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="459" />
+                                                    <a href="/for-sale/stellenbosch/western-cape/459" title="Property and houses for sale in Stellenbosch : Stellenbosch Property : Property24.com">Stellenbosch</a>
+
+                                                    <span> (860)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="765" />
+                                                    <a href="/for-sale/stilbaai/western-cape/765" title="Property and houses for sale in Stilbaai : Stilbaai Property : Property24.com">Stilbaai</a>
+
+                                                    <span> (809)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="392" />
+                                                    <a href="/for-sale/strand/western-cape/392" title="Property and houses for sale in Strand : Strand Property : Property24.com">Strand</a>
+
+                                                    <span> (299)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="688" />
+                                                    <a href="/for-sale/strandfontein/western-cape/688" title="Property and houses for sale in Strandfontein : Strandfontein Property : Property24.com">Strandfontein</a>
+
+                                                    <span> (31)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="412" />
+                                                    <a href="/for-sale/struisbaai/western-cape/412" title="Property and houses for sale in Struisbaai : Struisbaai Property : Property24.com">Struisbaai</a>
+
+                                                    <span> (188)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="393" />
+                                                    <a href="/for-sale/suiderstrand/western-cape/393" title="Property and houses for sale in Suiderstrand : Suiderstrand Property : Property24.com">Suiderstrand</a>
+
+                                                    <span> (48)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="341" />
+                                                    <a href="/for-sale/swellendam/western-cape/341" title="Property and houses for sale in Swellendam : Swellendam Property : Property24.com">Swellendam</a>
+
+                                                    <span> (135)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="465" />
+                                                    <a href="/for-sale/touws-river/western-cape/465" title="Property and houses for sale in Touws River : Touws River Property : Property24.com">Touws River</a>
+
+                                                    <span> (40)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="346" />
+                                                    <a href="/for-sale/tulbagh/western-cape/346" title="Property and houses for sale in Tulbagh : Tulbagh Property : Property24.com">Tulbagh</a>
+
+                                                    <span> (40)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="699" />
+                                                    <a href="/for-sale/uniondale/western-cape/699" title="Property and houses for sale in Uniondale : Uniondale Property : Property24.com">Uniondale</a>
+
+                                                    <span> (37)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="487" />
+                                                    <a href="/for-sale/vanrhynsdorp/western-cape/487" title="Property and houses for sale in Vanrhynsdorp : Vanrhynsdorp Property : Property24.com">Vanrhynsdorp</a>
+
+                                                    <span> (22)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="428" />
+                                                    <a href="/for-sale/velddrif/western-cape/428" title="Property and houses for sale in Velddrif : Velddrif Property : Property24.com">Velddrif</a>
+
+                                                    <span> (425)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="1924" />
+                                                    <a href="/for-sale/victoria-bay/western-cape/1924" title="Property and houses for sale in Victoria Bay : Victoria Bay Property : Property24.com">Victoria Bay</a>
+
+                                                    <span> (1)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="660" />
+                                                    <a href="/for-sale/villiersdorp/western-cape/660" title="Property and houses for sale in Villiersdorp : Villiersdorp Property : Property24.com">Villiersdorp</a>
+
+                                                    <span> (61)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="318" />
+                                                    <a href="/for-sale/vleesbaai/western-cape/318" title="Property and houses for sale in Vleesbaai : Vleesbaai Property : Property24.com">Vleesbaai</a>
+
+                                                    <span> (32)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="430" />
+                                                    <a href="/for-sale/vredenburg/western-cape/430" title="Property and houses for sale in Vredenburg : Vredenburg Property : Property24.com">Vredenburg</a>
+
+                                                    <span> (261)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="485" />
+                                                    <a href="/for-sale/vredendal/western-cape/485" title="Property and houses for sale in Vredendal : Vredendal Property : Property24.com">Vredendal</a>
+
+                                                    <span> (53)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="460" />
+                                                    <a href="/for-sale/wellington/western-cape/460" title="Property and houses for sale in Wellington : Wellington Property : Property24.com">Wellington</a>
+
+                                                    <span> (224)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="323" />
+                                                    <a href="/for-sale/wilderness/western-cape/323" title="Property and houses for sale in Wilderness : Wilderness Property : Property24.com">Wilderness</a>
+
+                                                    <span> (245)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="764" />
+                                                    <a href="/for-sale/witsand/western-cape/764" title="Property and houses for sale in Witsand : Witsand Property : Property24.com">Witsand</a>
+
+                                                    <span> (66)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="347" />
+                                                    <a href="/for-sale/wolseley/western-cape/347" title="Property and houses for sale in Wolseley : Wolseley Property : Property24.com">Wolseley</a>
+
+                                                    <span> (27)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="350" />
+                                                    <a href="/for-sale/worcester/western-cape/350" title="Property and houses for sale in Worcester : Worcester Property : Property24.com">Worcester</a>
+
+                                                    <span> (266)</span>
+                                            </label>
+                                            <label class="checkbox">
+                                                <input type="checkbox" name="AllCityIds" value="425" />
+                                                    <a href="/for-sale/yzerfontein/western-cape/425" title="Property and houses for sale in Yzerfontein : Yzerfontein Property : Property24.com">Yzerfontein</a>
+
+                                                    <span> (120)</span>
+                                            </label>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8GBCS__IpUZHpFW4XQtSl_3vkspPrwWsiTmnVqJwcpnEIu1aeH3IIMCPksUL7uC4QCOb5G5gfAa95qOSAzQwa3F8EkgV5WGhMysp8UeGcCHzQ2-rM4dJl8HixMHrqkvtymGPDQwM-5dHPi6GSPc33SY" /></form>   <script type="text/javascript">
+       window.loader.addCallback((renderComponent) => renderComponent({"name":"AreaCheckboxList","props":"city","type":"c"}));
+   </script>        </div>         
+        <div class="p24_sidebarContainer">
+            
+<div data-react-component="Client_Newsletters_NewsletterBox" id="931bc9bd2cca4528b963f64d53a05251">
+    <div class="p24_newsletterContainer">
+        <div class="p24_headingContainer">
+            <img src="/Content/images/Optimized/Icons/icon_newsletter.svg?z=6701a7" alt="newsletter" class="p24_newsLetterIcon">
+            <h3 class="p24_heading">Get the latest property news</h3>
+        </div>
+            <div class="p24_checkboxGroups">
+                <div class="p24_checkboxGroup">
+                    <span class="p24_checkboxProxy "></span>
+                    <div id="499" class="btn-group"><label class=""><span class="fa-stack p24_checkboxStack"><i class="fa fa-square fa-stack-1x"></i><i class="fa fa-check-square fa-stack-1x"></i></span><input class="P24_checkbox" id="499" name="499" type="checkbox">Weekly Newsletter</label></div>
+                </div>
+                <div class="p24_checkboxGroup">
+                    <span class="p24_checkboxProxy "></span>
+                    <div id="497" class="btn-group"><label class=""><span class="fa-stack p24_checkboxStack"><i class="fa fa-square fa-stack-1x"></i><i class="fa fa-check-square fa-stack-1x"></i></span><input class="P24_checkbox" id="497" name="497" type="checkbox">Hot Properties</label></div>
+                </div>
+                <div class="p24_checkboxGroup">
+                    <span class="p24_checkboxProxy "></span>
+                    <div id="498" class="btn-group"><label class=""><span class="fa-stack p24_checkboxStack"><i class="fa fa-square fa-stack-1x"></i><i class="fa fa-check-square fa-stack-1x"></i></span><input class="P24_checkbox" id="498" name="498" type="checkbox">Home Lifestyle</label></div>
+                </div>
+
+                <div class="p24_inputGroup">
+                    <input type="text" placeholder="Email Address"><button class="btn btn-success p24_subscribeBtn">Subscribe</button>
+                    <p class="p24_terms">By continuing I understand and agree with <a href="/terms-and-conditions" target="_blank">Property24's Terms &amp; Conditions</a> and <a href="/privacy-policy" target="_blank">Privacy Policy</a>.</p>
+                </div>
+            </div>
+    </div>
+</div>
+<script type="application/json" data-props-for="931bc9bd2cca4528b963f64d53a05251">
+    {"isLoggedIn":false,"newsletters":[{"id":499,"url":"weekly-newsletter","name":"Weekly Newsletter","subscribed":false,"newsletterType":499},{"id":497,"url":"hot-properties","name":"Hot Properties","subscribed":false,"newsletterType":497},{"id":498,"url":"home-lifestyle","name":"Home Lifestyle","subscribed":false,"newsletterType":498}]}
+</script>
+        </div>
+    </div>
+</div>
+
+
+<div class="hidden-print p24_footer">
+    <div class="p24_areas">
+        <div class="container">
+            <div class="row">
+                    <div class="col-2-4 p24_areaHeading">
+                                <a href="/for-sale/cape-town/western-cape/432" title="Property and houses for sale in Cape Town : Cape Town Property : Property24.com" class="p24_bold">Property for sale in Cape Town</a>
+                    </div>
+                    <div class="col-2-4 p24_areaHeading">
+                                <a href="/for-sale/stellenbosch/western-cape/459" title="Property and houses for sale in Stellenbosch : Stellenbosch Property : Property24.com" class="p24_bold">Property for sale in Stellenbosch</a>
+                    </div>
+                    <div class="col-2-4 p24_areaHeading">
+                                <a href="/for-sale/bellville/western-cape/441" title="Property and houses for sale in Bellville : Bellville Property : Property24.com" class="p24_bold">Property for sale in Bellville</a>
+                    </div>
+                    <div class="col-2-4 p24_areaHeading">
+                                <a href="/for-sale/somerset-west/western-cape/390" title="Property and houses for sale in Somerset West : Somerset West Property : Property24.com" class="p24_bold">Property for sale in Somerset West</a>
+                    </div>
+                    <div class="col-2-4 p24_areaHeading">
+                                <a href="/for-sale/western-cape/9" title="Property for sale in Western Cape : Property and houses for sale in Western Cape : Property24.com" class="p24_bold">Property for sale in Western Cape</a>
+                    </div>
+            </div>
+            <div class="row">
+                    <div class="col-2-4">
+                        <ul>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/camps-bay/cape-town/western-cape/11014" title="Camps Bay Property : Property and houses for sale in Camps Bay : Property24.com">Camps Bay</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/cape-town-city-centre/cape-town/western-cape/9138" title="Cape Town City Centre Property : Property and houses for sale in Cape Town City Centre : Property24.com">Cape Town City Centre</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/constantia/cape-town/western-cape/11742" title="Constantia, Cape Town Property : Property and houses for sale in Constantia, Cape Town : Property24.com">Constantia</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/green-point/cape-town/western-cape/11017" title="Green Point, Cape Town Property : Property and houses for sale in Green Point, Cape Town : Property24.com">Green Point</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/muizenberg/cape-town/western-cape/9025" title="Muizenberg Property : Property and houses for sale in Muizenberg : Property24.com">Muizenberg</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/sea-point/cape-town/western-cape/11021" title="Sea Point Property : Property and houses for sale in Sea Point : Property24.com">Sea Point</a>
+                                </li>
+                        </ul>
+                    </div>
+                    <div class="col-2-4">
+                        <ul>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/de-zalze-winelands-golf-estate/stellenbosch/western-cape/10502" title="De Zalze Winelands Golf Estate Property : Property and houses for sale in De Zalze Winelands Golf Estate : Property24.com">De Zalze Winelands Golf Estate</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/die-boord/stellenbosch/western-cape/8530" title="Die Boord Property : Property and houses for sale in Die Boord : Property24.com">Die Boord</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/paradyskloof/stellenbosch/western-cape/8540" title="Paradyskloof Property : Property and houses for sale in Paradyskloof : Property24.com">Paradyskloof</a>
+                                </li>
+                        </ul>
+                    </div>
+                    <div class="col-2-4">
+                        <ul>
+                        </ul>
+                    </div>
+                    <div class="col-2-4">
+                        <ul>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/briza/somerset-west/western-cape/8947" title="Briza Property : Property and houses for sale in Briza : Property24.com">Briza</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/heldervue/somerset-west/western-cape/8966" title="Heldervue Property : Property and houses for sale in Heldervue : Property24.com">Heldervue</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/heritage-park/somerset-west/western-cape/7800" title="Heritage Park Property : Property and houses for sale in Heritage Park : Property24.com">Heritage Park</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/parel-vallei/somerset-west/western-cape/7802" title="Parel Vallei Property : Property and houses for sale in Parel Vallei : Property24.com">Parel Vallei</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/somerset-ridge/somerset-west/western-cape/9014" title="Somerset Ridge Property : Property and houses for sale in Somerset Ridge : Property24.com">Somerset Ridge</a>
+                                </li>
+                        </ul>
+                    </div>
+                    <div class="col-2-4">
+                        <ul>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/blouberg/western-cape/658" title="Property and houses for sale in Blouberg : Blouberg Property : Property24.com">Blouberg</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/durbanville/western-cape/439" title="Property and houses for sale in Durbanville : Durbanville Property : Property24.com">Durbanville</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/george/western-cape/321" title="Property and houses for sale in George : George Property : Property24.com">George</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/hermanus/western-cape/400" title="Property and houses for sale in Hermanus : Hermanus Property : Property24.com">Hermanus</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/knysna/western-cape/322" title="Property and houses for sale in Knysna : Knysna Property : Property24.com">Knysna</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/langebaan/western-cape/427" title="Property and houses for sale in Langebaan : Langebaan Property : Property24.com">Langebaan</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/paarl/western-cape/344" title="Property and houses for sale in Paarl : Paarl Property : Property24.com">Paarl</a>
+                                </li>
+                                <li class="p24_areaItem">
+                                    <a href="/for-sale/wilderness/western-cape/323" title="Property and houses for sale in Wilderness : Wilderness Property : Property24.com">Wilderness</a>
+                                </li>
+                        </ul>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="container p24_moreFooter">
+        <div class="row">
+            <div class="col-8">
+                <a href="/" title="Property for sale: Houses for sale: Property24">
+                    <img src="/Content/images/Optimized/Logos/footer_logo_white_large.svg?z=8108a8253dc9f8d0d0d1" alt = "Property for sale: Houses for sale: Property24" class="p24_footerLogo" />
+                </a>
+            </div>
+            <div class="col-4">
+                <div class="p24_socials">
+                    <a href="https://www.instagram.com/property24_sa/" target="_blank" title="Find Property24 on Instagram" class=""><img src="/Content/images/Optimized/Icons/icon_instagram_rounded.svg?z=befcb56eeefeca2b7157" alt="instagram" /></a>
+                    <a href="https://www.facebook.com/property24" target="_blank" title="Find Property24 on Facebook" class=""><img src="/Content/images/Optimized/Icons/icon_facebook_rounded.svg?z=38bfdb8180de4b2ec66a" alt="facebook" /></a>
+                    <a href="https://twitter.com/Property24" target="_blank" title="Find Property24 on Twitter" class=""><img src="/Content/images/Optimized/Icons/icon_twitter_rounded.svg?z=a4e31f27df144d88a0ea" alt="twitter" /></a>
+                    <a href="https://www.youtube.com/user/Property24" target="_blank" title="Find Property24 on Youtube" class=""><img src="/Content/images/Optimized/Icons/icon_youtube_rounded.svg?z=4e7743d439878c62a49f" alt="youtube" /></a>
+                    <a href="https://www.pinterest.com/property24/" target="_blank" title="Find Property24 on Pinterest" class=""><img src="/Content/images/Optimized/Icons/icon_pinterest_rounded.svg?z=d70f8a6856fc28aea94c" alt="pinterest" /></a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <hr />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-8 p24_postFooter">
+                <div class="row">
+                    <div class="col-4">
+                        <ul>
+                            <li>
+                                <a href="/about-us">About Us</a>
+                            </li>
+                            <li>
+                                <a href="/contact-us">Contact Us</a>
+                            </li>
+                            <li>
+                                <a href="/feedback">Feedback</a>
+                            </li>
+                            <li>
+                                <a href="/sitemap">Sitemap</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>
+                                <a href="/terms-and-conditions">Terms &amp; Conditions</a>
+                            </li>
+                            <li>
+                                <a href="/privacy-policy">Privacy Policy</a>
+                            </li>
+                            <li>
+                                <a href="/cookie-policy">Cookie Policy</a>
+                            </li>
+                            <li>
+                                <a href="/paia-manual">PAIA Manual</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>
+                                <a href="/careers">Join Our Team</a>
+                            </li>
+                            <li>
+                                <a href="https://manage.property24.com/">Agent Zone</a>
+                            </li>
+                            <li>
+                                <a href="/products/products-overview">Agency Products</a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="p24_copyright">Copyright &#xA9; 2026 Property24</div>
+            </div>
+            <div class="col-4">
+                <div class="pull-right">
+                    <p class="p24_bold p24_downloadTitle p24_mB0">Download the App</p>
+                    <div class="p24_appLogos">
+                        <a href="https://itunes.apple.com/za/app/property24.com-property-for/id486012121?mt=8" alt="Available on the App Store" class="p24_storeIcon"><img src="/Content/images/Optimized/Icons/footer_apple_store.svg?z=5de7839dd2c149b09824" alt="Available on the App Store" /></a>
+                        <a href="https://play.google.com/store/apps/details?id=com.korbitec.property24" alt="Android app on Google play" class="p24_storeIcon"><img src="/Content/images/Optimized/Icons/footer_google_store.svg?z=c8260857661db3a84c9d" alt="Available on the App Store" /></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="cookieConsentWrapper" class="p24_cookieWrapper">
+        <div class="p24_cookieBanner" role="alert">
+            <div class="p24_text">
+                <h4>Cookie Notice</h4>
+                <div>We use cookies that are essential for this website to function and to improve your user experience. Please refer to our
+                    <a id="cookiePolicyLink" href="/cookie-policy" target="_blank">cookie policy</a>.</div>
+            </div>
+            <div class="p24_button">
+                <button id="cookieBannerClose" type="button" class="btn btn-default">Close</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function hideCookieBanner() {
+            let expiryDate = new Date((new Date().getTime()) + 31536000000);
+            document.cookie = "P24CPA=2021-06-29T00:27:41.2870000;path=/;domain=.property24.com;SameSite=Lax;Secure;expires=" + expiryDate.toUTCString();
+            document.querySelector("#cookieConsentWrapper").classList.add("hidden");
+        }
+
+        (function () {
+            document.getElementById("cookiePolicyLink").addEventListener("click", hideCookieBanner, false);
+            document.getElementById("cookieBannerClose").addEventListener("click", hideCookieBanner, false);
+        })();
+    </script>
+</div>
+
+
+
+        
+    
+
+
+            <script type="text/javascript">addCallback(function() {
+                $(".js_ie8_dismiss").on("click", function () {
+                    Property24.Cookies.Set(Property24.Constants.CookieKeys.OldIEUpgradeWarningSeen, 1, { expires: 365 });
+                    $(".js_ie8_message").fadeOut(500);
+                });
+            });</script>
+    </div>
+    <div class="p24_loading js_Loading">
+        <i class="fa fa-3x fa-spin fa-spinner"></i>
+        <img src="/Content/images/Optimized/loading.gif?z=06483dd6d616a2608023" alt="Loading" class="p24_ieLoader" />
+    </div>
+    <div class="modal fade p24_modal" id="globalModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <img src="/Content/images/Optimized/Icons/icon_close_grey.png?z=1cc08bf7b63ad90d18b7" alt="Close" class="p24_close" data-dismiss="modal" aria-label="Close" />
+                            <div class="clearfix"></div>
+                            <div><span class="p24_title">set at runtime</span> - Property24</div>
+                            <div class="p24_devMessage">
+                                set at runtime
+                            </div>
+                            <div class="p24_liveMessage">
+                                set at runtime
+                            </div>
+                            <hr class="p24_margin" />
+                            <a href="javascript:;" class="pull-right btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<div data-react-component="Client_Login_LoginModal" id="21a6a171cd2a4039af5446a68c1397dc"></div>
+<script type="application/json" data-props-for="21a6a171cd2a4039af5446a68c1397dc">
+    {"spui":false,"isOAuth2":false,"showPopi":true,"activeTab":0,"enableRecaptcha":true,"state":8,"returnUrl":"/for-sale/all-cities/western-cape/9","registerUrl":"/signup?returnUrl=%2ffor-sale%2fall-cities%2fwestern-cape%2f9","oAuthLoginUrl":"/oauth2login","forgotPasswordUrl":"/reset-password?returnUrl=%2ffor-sale%2fall-cities%2fwestern-cape%2f9","termsAndConditionsUrl":"/terms-and-conditions","resendVerificationCodeUrl":"https://www.property24.com/User/ResendVerificationCode","validateVerificationCodeUrl":"https://www.property24.com/User/ValidateVerificationCode","twoStepSetupUrl":"https://manage.property24.com/Country-1/Account/SignIn?returnUrl=https%3a%2f%2fwww.property24.com%2ffor-sale%2fall-cities%2fwestern-cape%2f9","availableTwoStepMethods":[2,3,4]}
+</script>
+
+
+    <script type="text/javascript">addCallback(function() {
+        var IsDesktopRendered = true;
+        $.validator.methods.email = function(value, element) {
+            var re = /^(\s*)(?![.-])(?:[-a-zA-Z0-9!#$%&*+/=?^_`{|}~.])*(?:[a-zA-Z0-9!#$%&*+/=?^_`{|}~])+@(?:(?!-)[a-zA-Z0-9-]*[a-zA-Z0-9]\.)+[a-zA-Z]{2,}(\s*)$/;
+            return this.optional(element) || re.test(value);
+        };
+    });</script>
+</body>
+</html>
