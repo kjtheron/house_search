@@ -19,12 +19,12 @@ FEATURES = {"Bedrooms": "beds", "Bathrooms": "baths", "Parking Spaces": "garages
             "Erf Size": "erf_m2", "Floor Size": "floor_m2"}
 
 
-def parse(html: str, town: str | None = None, province: str | None = None) -> Page:
+def parse(html: str) -> Page:
     return parse_cards(html, ".p24_regularTile[data-listing-number], .p24_proTile[data-listing-number]",
-                       lambda n: _tile(n, town, province), "property24")
+                       _tile, "property24")
 
 
-def _tile(tile: Node, town, province) -> Listing:
+def _tile(tile: Node) -> Listing:
     lid = tile.attributes["data-listing-number"]
     href = next(a.attributes["href"] for a in tile.css("a[href]") if f"/{lid.lstrip('P')}" in a.attributes["href"])
     # /for-sale/{suburb}/{town}/{province}/{suburb_id}/{listing_id}
@@ -34,7 +34,8 @@ def _tile(tile: Node, town, province) -> Listing:
     l = Listing(
         source="property24", source_listing_id=lid, url=urljoin(BASE, href.split("?")[0]),
         title=heading.split(" - ")[0] or None,
-        province=province, town=town or parts[2].replace("-", " ").title(),
+        # Town/province from the listing's own URL, never from the search we asked for.
+        province=parts[3], town=parts[2].replace("-", " ").title(),
         suburb=text(tile, ".p24_location") or parts[1].replace("-", " ").title(),
         property_type=property_type(heading),
         price=to_int(price_node.attributes.get("content") or price_node.text()) if price_node else None,

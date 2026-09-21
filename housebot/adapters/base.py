@@ -43,7 +43,7 @@ class BaseAdapter:
         self.complete = True  # True after pages() if every result page was read (safe to mark gone)
 
     def search_url(self, cfg: SearchConfig, town: str | None, loc_id: int, ptype: str, page: int) -> str: ...
-    def parse(self, html: str, town: str | None, province: str) -> Page: ...
+    def parse(self, html: str) -> Page: ...
     def listing_status(self, url: str) -> str: ...   # fetch one listing page: active|under_offer|sold|gone
     def town_ids(self, province: str) -> dict[str, int]: ...
 
@@ -57,7 +57,10 @@ class BaseAdapter:
                     r = self.http.get(self.search_url(cfg, town, loc_id, ptype, n))
                     if r.status_code == 404:
                         break
-                    page = self.parse(r.text, town, cfg.province)
+                    if town and slug(town) not in str(r.url):  # site redirected: wrong location ID
+                        raise ValueError(f"location ID {loc_id} is not {town} on {self.name} "
+                                         f"(site sent {r.url.path}); fix sources.{self.name}.locations")
+                    page = self.parse(r.text)
                     yield page
                     # Promoted cards are out of date order, so they don't count toward "caught up".
                     ids = {l.source_listing_id for l in page.listings if not l.raw.get("promoted")}

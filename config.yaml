@@ -31,13 +31,13 @@ sources:
     enabled: true
     max_pages: 15
     province_id: 9
-    locations: {Somerset West: 390}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
+    locations: {}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
   privateproperty:
     # Also newest first. Note: it names Cape Town areas "Cape Flats", "Southern Suburbs", etc.
     enabled: true
     max_pages: 15
     province_id: 4
-    locations: {Somerset West: 390}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
+    locations: {}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
 
 http:
   min_delay_s: 5

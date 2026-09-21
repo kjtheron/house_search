@@ -151,8 +151,9 @@ def check(cfg: Config, conn, http, listings: list[dict], adapters=ADAPTERS) -> l
         try:
             status = sites[l["source"]].listing_status(l["url"])
         except Blocked as e:
-            log.warning("check stopped: %s", e)
-            break
+            log.warning("%s checks stopped for this run: %s", l["source"], e)
+            del sites[l["source"]]
+            continue
         except Exception as e:
             log.warning("check #%s failed: %s", l["id"], e)
             continue

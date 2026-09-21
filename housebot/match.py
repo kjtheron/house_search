@@ -34,6 +34,8 @@ def reasons(l: Listing, s: SearchConfig) -> list[str]:
         elif value.lower() not in {a.lower() for a in allowed}:
             out.append(f"{name} {value} not wanted")
 
+    if l.province and l.province != s.province:
+        out.append(f"province {l.province}")
     one_of("town", l.town, s.towns)
     if l.town and l.town.lower() in {t.lower() for t in s.exclude_towns}:
         out.append(f"town {l.town} excluded")

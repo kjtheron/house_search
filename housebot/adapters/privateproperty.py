@@ -21,12 +21,11 @@ FEATURES = {"Bedrooms": "beds", "Bathrooms": "baths", "Parking spaces": "garages
             "Land size": "erf_m2", "Erf size": "erf_m2", "Floor size": "floor_m2"}
 
 
-def parse(html: str, town: str | None = None, province: str | None = None) -> Page:
-    return parse_cards(html, "a.listing-result[href], a.featured-listing[href]",
-                       lambda n: _card(n, town, province), "privateproperty")
+def parse(html: str) -> Page:
+    return parse_cards(html, "a.listing-result[href], a.featured-listing[href]", _card, "privateproperty")
 
 
-def _card(card: Node, town, province) -> Listing:
+def _card(card: Node) -> Listing:
     href = card.attributes["href"]
     lid = re.search(r"/(T\d+)$", href).group(1)
     ld = next((d for d in map(_json, card.css("script[type='application/ld+json']"))
@@ -34,11 +33,13 @@ def _card(card: Node, town, province) -> Listing:
     # addressLocality: "Welgevonden, Stellenbosch"
     locality = [p.strip() for p in ld.get("address", {}).get("addressLocality", "").split(",")]
     title = card.attributes.get("title")
+    # /for-sale/{province}/{region}/{town}/...: province/town from the listing, not the search.
+    path = href.strip("/").split("/")
     price = card.css_first("[class*='__price']")
     l = Listing(
         source="privateproperty", source_listing_id=lid, url=urljoin(BASE, href),
-        title=title, province=province,
-        town=town or (locality[-1] if len(locality) > 1 else None),
+        title=title, province=path[1],
+        town=locality[-1] if len(locality) > 1 else path[3].replace("-", " ").title(),
         suburb=locality[0] or None,
         property_type=property_type(title),
         price=to_int(price.text()) if price else None,

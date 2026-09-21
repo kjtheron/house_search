@@ -260,7 +260,7 @@ def fake_adapter(newest):
         newest_first = newest
         def search_url(self, cfg, town, loc_id, ptype, page): return f"x?p={page}"
         next_page = "more{}"
-        def parse(self, html, town, province):
+        def parse(self, html):
             ls = [house(i) for i in html.split("|")[1].split(",")]
             for l in ls:
                 l.raw["promoted"] = l.source_listing_id.startswith("P")
@@ -317,8 +317,9 @@ def test_rematch_after_town_change(conn):
 
 def test_check_updates_status(conn):
     from housebot.pipeline import check
-    put(conn, house())
-    put(conn, house("2"))
+    put(conn, house(), ts="2026-01-01T00:00:00")
+    put(conn, house("2"), ts="2026-01-01T00:00:00")
+    put(conn, house("3"))  # seen on a search page just now: no need to open it
 
     class A:
         def __init__(self, http, src): pass
@@ -327,8 +328,8 @@ def test_check_updates_status(conn):
     cfg = Config(search=SEARCH, sources={"property24": {"province_id": 9}})
     changed = check(cfg, conn, None, db.to_check(conn), adapters={"property24": A})
     assert [(c["id"], c["status"]) for c in changed] == [(1, "sold")]
-    assert db.to_check(conn) == [db.to_check(conn)[0]] and db.to_check(conn)[0]["id"] == 2  # sold drops out
-    assert db.search(conn)[0]["id"] == 2
+    assert [l["id"] for l in db.to_check(conn)] == []  # 1 sold, 2 just checked, 3 just seen
+    assert {l["id"] for l in db.search(conn)} == {2, 3}
 
 
 def test_backfill_never_marks_gone(conn, tmp_path):
@@ -354,3 +355,25 @@ def test_sources_run_in_parallel_and_fail_alone(conn, tmp_path):
     by = {r["source"]: r for r in results}
     assert by["property24"]["status"] == "failed" and by["property24"]["seen"] == 1
     assert by["privateproperty"]["status"] == "ok" and by["privateproperty"]["seen"] == 1
+
+
+def test_other_province_never_matches():
+    assert reasons(house(province="kwazulu-natal"), SEARCH) == ["province kwazulu-natal"]
+
+
+def test_wrong_location_id_is_reported():
+    from housebot.adapters.base import BaseAdapter
+    from housebot.config import SourceConfig
+
+    class Redirecting:
+        def get(self, url):
+            return type("R", (), {"status_code": 200, "text": "", "url": type("U", (), {
+                "path": "/houses-for-sale/umgeni-park/390", "__str__": lambda s: "https://x/houses-for-sale/umgeni-park/390"})()})()
+
+    class A(BaseAdapter):
+        name = "privateproperty"
+        def search_url(self, *a): return "u"
+        def parse(self, html): return Page()
+
+    with pytest.raises(ValueError, match="location ID 390 is not Somerset West"):
+        list(A(Redirecting(), SourceConfig(locations={"Somerset West": 390})).pages(SEARCH))

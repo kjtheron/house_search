@@ -7,7 +7,7 @@ Migrations are the numbered .sql files in housebot/migrations/, tracked by PRAGM
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from importlib import resources
 from pathlib import Path
 
@@ -153,9 +153,10 @@ def to_check(conn, ids=None, favs=False, limit=20) -> list[dict]:
     else:
         cond = ("id IN (SELECT listing_id FROM favourites)" if favs else
                 "(matches = 1 OR id IN (SELECT listing_id FROM favourites))")
+        # A listing seen on a search page in the last day already showed its status there.
         sql = (f"SELECT * FROM listings WHERE {cond} AND status IN ('active', 'under_offer') "
-               "ORDER BY last_checked IS NOT NULL, last_checked LIMIT ?")
-        args = [limit]
+               "AND coalesce(last_checked, last_seen) < ? ORDER BY coalesce(last_checked, last_seen) LIMIT ?")
+        args = [(datetime.now() - timedelta(days=1)).isoformat(timespec="seconds"), limit]
     return [dict(r) for r in conn.execute(sql, args)]
 
 

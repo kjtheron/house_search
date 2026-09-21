@@ -13,14 +13,14 @@ FIX = Path(__file__).parent / "fixtures"
 
 
 def test_property24_search_page():
-    page = property24.parse((FIX / "property24/search_houses_stellenbosch.html").read_text(), "Stellenbosch", "western-cape")
+    page = property24.parse((FIX / "property24/search_houses_stellenbosch.html").read_text())
     assert page.errors == 0
     assert len(page.listings) == 21
     for l in page.listings:
         assert l.source_listing_id and l.url.startswith("https://www.property24.com/for-sale/")
         assert l.source_listing_id in l.url
         assert l.price and 1_000_000 < l.price < 10_000_000  # URL filtered 2m-4.5m
-        assert l.beds and l.baths and l.suburb and l.town == "Stellenbosch"
+        assert l.beds and l.baths and l.suburb and l.town == "Stellenbosch" and l.province == "western-cape"
     first = page.listings[0]
     assert (first.source_listing_id, first.price, first.suburb, first.beds, first.baths, first.garages, first.erf_m2) == \
         ("117508138", 2930000, "Klein Welgevonden", 3, 2, 3, 181)
@@ -29,12 +29,12 @@ def test_property24_search_page():
 
 
 def test_privateproperty_search_page():
-    page = privateproperty.parse((FIX / "privateproperty/search_stellenbosch.html").read_text(), "Stellenbosch", "western-cape")
+    page = privateproperty.parse((FIX / "privateproperty/search_stellenbosch.html").read_text())
     assert page.errors == 0
     assert len(page.listings) == 20
     for l in page.listings:
         assert l.source_listing_id.startswith("T") and l.url.endswith(l.source_listing_id)
-        assert l.suburb and l.photo_url
+        assert l.suburb and l.photo_url and l.town == "Stellenbosch" and l.province == "western-cape"
     by_id = {l.source_listing_id: l for l in page.listings}
     l = by_id["T5573342"]
     assert (l.price, l.suburb, l.beds, l.baths, l.garages, l.erf_m2, l.property_type) == \

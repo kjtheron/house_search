@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 class Blocked(Exception):
-    """Site answered 403/429. Stop this source for today; never try to evade it."""
+    """Site answered 403/429/503. Stop this source for today; never try to evade it."""
 
 
 class PoliteClient:
@@ -45,7 +45,7 @@ class PoliteClient:
             except httpx.TransportError as e:
                 log.warning("GET %s failed (%s), attempt %d", url, e, attempt)
             else:
-                if r.status_code in (403, 429):
+                if r.status_code in (403, 429, 503):  # 503 here = the site throttling us
                     raise Blocked(f"{r.status_code} from {url}")
                 if r.status_code < 500:
                     return r
