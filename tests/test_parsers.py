@@ -1,6 +1,7 @@
 """Parser tests against saved HTML pages in tests/fixtures/.
 
 If a site changes its HTML, save a fresh page over the fixture, run these, and fix the parser.
+After saving a page, run `uv run python tests/redact_fixtures.py` to strip the site's API keys.
 """
 
 from pathlib import Path

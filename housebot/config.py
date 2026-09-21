@@ -98,15 +98,20 @@ class ConfigError(Exception):
     pass
 
 
-def load(path: str | Path | None = None) -> Config:
+def path() -> Path:
+    """The config file in use: $HOUSEBOT_CONFIG, else ./config.yaml."""
+    return Path(os.environ.get("HOUSEBOT_CONFIG", "config.yaml"))
+
+
+def load(file: str | Path | None = None) -> Config:
     load_dotenv()
-    path = Path(path or os.environ.get("HOUSEBOT_CONFIG", "config.yaml"))
+    path_ = Path(file or path())
     try:
-        return Config.model_validate(yaml.safe_load(path.read_text()) or {})
+        return Config.model_validate(yaml.safe_load(path_.read_text()) or {})
     except FileNotFoundError:
-        raise ConfigError(f"Config file not found: {path}")
+        raise ConfigError(f"Config file not found: {path_}")
     except yaml.YAMLError as e:
-        raise ConfigError(f"{path} is not valid YAML: {e}")
+        raise ConfigError(f"{path_} is not valid YAML: {e}")
     except ValidationError as e:
         lines = [f"  {'.'.join(map(str, err['loc'])) or '(root)'}: {err['msg']}" for err in e.errors()]
-        raise ConfigError(f"Invalid config in {path}:\n" + "\n".join(lines))
+        raise ConfigError(f"Invalid config in {path_}:\n" + "\n".join(lines))

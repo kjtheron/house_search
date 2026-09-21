@@ -1,6 +1,7 @@
 """Polite HTTP client used by every adapter.
 
-Waits a random 5-10 s (config http.*) between requests, retries network errors and 5xx,
+Waits a random 5-10 s (config http.*) between requests *to the same site*, retries network
+errors and 5xx,
 and raises Blocked on 403/429 so the pipeline stops that source for the day.
 It never rotates proxies or tries to get around a block.
 """
@@ -8,6 +9,7 @@ It never rotates proxies or tries to get around a block.
 import logging
 import random
 import time
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -23,21 +25,21 @@ class Blocked(Exception):
 class PoliteClient:
     def __init__(self, cfg: HttpConfig, retries: int = 3, sleep=time.sleep, clock=time.monotonic):
         self.cfg, self.retries, self.sleep, self.clock = cfg, retries, sleep, clock
-        self._last = None
+        self._last: dict[str, float] = {}  # host -> time of last request (each site has its own pace)
         self._client = httpx.Client(timeout=cfg.timeout_s, follow_redirects=True,
                                     headers={"User-Agent": cfg.user_agent, "Accept-Language": "en-ZA,en"})
 
-    def _wait(self):
-        if self._last is not None:
+    def _wait(self, host: str):
+        if host in self._last:
             gap = random.uniform(self.cfg.min_delay_s, self.cfg.max_delay_s)
-            left = self._last + gap - self.clock()
+            left = self._last[host] + gap - self.clock()
             if left > 0:
                 self.sleep(left)
-        self._last = self.clock()
+        self._last[host] = self.clock()
 
     def get(self, url: str) -> httpx.Response:
         for attempt in range(1, self.retries + 1):
-            self._wait()
+            self._wait(urlsplit(url).hostname)
             try:
                 r = self._client.get(url)
             except httpx.TransportError as e:

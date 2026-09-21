@@ -161,6 +161,7 @@ def test_non_matching_never_notifies(conn):
 
 class FakeAdapter:
     name = "property24"
+    complete = True
     listings = [house(), house("2", suburb="Dalsig")]
 
     def __init__(self, http, src):
@@ -216,9 +217,11 @@ def test_polite_delay():
     naps = []
     c = PoliteClient(HttpConfig(min_delay_s=5, max_delay_s=10), sleep=lambda s: (naps.append(s), t.__setitem__(0, t[0] + s)),
                      clock=lambda: t[0])
-    c._wait()
-    c._wait()
-    assert naps and 5 <= naps[0] <= 10
+    c._wait("a.com")
+    c._wait("b.com")  # another site: no wait
+    assert naps == []
+    c._wait("a.com")
+    assert len(naps) == 1 and 5 <= naps[0] <= 10
 
 
 def test_bad_config_is_readable(tmp_path):
@@ -246,7 +249,8 @@ class FakeHttp:
     def get(self, url):
         self.urls.append(url)
         n = int(url.rsplit("=", 1)[1])
-        return type("R", (), {"status_code": 200, "text": f"{n}|{self.pages[n - 1]}"})()
+        more = f"more{n + 1}" if n < len(self.pages) else ""
+        return type("R", (), {"status_code": 200, "text": f"{n}|{self.pages[n - 1]}|{more}"})()
 
 
 def fake_adapter(newest):
@@ -255,7 +259,7 @@ def fake_adapter(newest):
     class A(BaseAdapter):
         newest_first = newest
         def search_url(self, cfg, town, loc_id, ptype, page): return f"x?p={page}"
-        def has_next(self, html, page): return page < 4
+        next_page = "more{}"
         def parse(self, html, town, province):
             ls = [house(i) for i in html.split("|")[1].split(",")]
             for l in ls:
@@ -333,3 +337,20 @@ def test_backfill_never_marks_gone(conn, tmp_path):
     for _ in range(3):
         collect(cfg, conn, None, adapters={"property24": FakeAdapter}, debug_dir=tmp_path, backfill=True)
     assert conn.execute("SELECT status FROM listings WHERE source_listing_id='old'").fetchone()[0] == "active"
+
+
+def test_sources_run_in_parallel_and_fail_alone(conn, tmp_path):
+    class Other(FakeAdapter):
+        name = "privateproperty"
+        listings = [house("T1", "privateproperty", suburb="Dalsig")]
+
+    class Broken(FakeAdapter):
+        def pages(self, cfg, known=frozenset()):
+            yield Page(listings=[house("9")])
+            raise RuntimeError("site changed")
+
+    cfg = Config(search=SEARCH, sources={"property24": {"province_id": 9}, "privateproperty": {"province_id": 4}})
+    results = collect(cfg, conn, None, adapters={"property24": Broken, "privateproperty": Other}, debug_dir=tmp_path)
+    by = {r["source"]: r for r in results}
+    assert by["property24"]["status"] == "failed" and by["property24"]["seen"] == 1
+    assert by["privateproperty"]["status"] == "ok" and by["privateproperty"]["seen"] == 1

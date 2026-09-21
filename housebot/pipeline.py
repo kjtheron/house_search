@@ -8,6 +8,9 @@ backfill(): read every page of one town once, for its full history.
 """
 
 import logging
+import queue
+import threading
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
@@ -20,50 +23,88 @@ from .match import matches
 from .notify import format_listing
 
 log = logging.getLogger(__name__)
+_DONE = object()  # end-of-source marker on the fetch queue
+
+
+@contextmanager
+def session(cfg: Config):
+    """Open the DB and the polite HTTP client; always close both."""
+    conn = db.connect(cfg.paths.db)
+    http = PoliteClient(cfg.http)
+    try:
+        yield conn, http
+    finally:
+        http.close()
+        conn.close()
 
 
 def collect(cfg: Config, conn, http, source: str | None = None, adapters=ADAPTERS,
             debug_dir: Path = Path("data/debug"), backfill: bool = False) -> list[dict]:
     """Scrape every enabled source into the DB. Returns one result dict per source.
 
+    Sources are fetched in parallel threads (each site keeps its own polite pace); all DB
+    writes stay on this thread, because a SQLite connection must not cross threads.
     backfill=True reads every page (no early stop) and never marks listings gone,
     because it only looks at part of the province.
     """
-    results = []
+    jobs = {}
     for name, src in cfg.sources.items():
         if not src.enabled or (source and name != source) or name not in adapters:
             continue
-        run_id = db.start_run(conn, f"{name} (backfill)" if backfill else name)
-        res = {"source": name, "status": "ok", "seen": 0, "new": 0, "price_changes": 0, "errors": 0, "why": ""}
-        last_html = ""
         known = set() if backfill else {
             r[0] for r in conn.execute("SELECT source_listing_id FROM listings WHERE source=?", (name,))}
-        adapter = adapters[name](http, src)
+        jobs[name] = {"adapter": adapters[name](http, src), "known": known, "last_html": "",
+                      "run_id": db.start_run(conn, f"{name} (backfill)" if backfill else name),
+                      "res": {"source": name, "status": "ok", "seen": 0, "new": 0, "price_changes": 0,
+                              "errors": 0, "why": ""}}
+
+    q: queue.Queue = queue.Queue()
+
+    def fetch(name, job):
         try:
-            for page in adapter.pages(cfg.search, known):
-                last_html = page.html
-                res["errors"] += page.errors
-                for l in page.listings:
-                    res["seen"] += 1
-                    change = db.upsert(conn, l, matches(l, cfg.search), fingerprint(l))
-                    res["new"] += change == "new"
-                    res["price_changes"] += change == "price_change"
-        except Blocked as e:
-            res.update(status="degraded", why=f"blocked: {e}")
+            for page in job["adapter"].pages(cfg.search, job["known"]):
+                q.put((name, page, None))
         except Exception as e:
-            log.exception("%s failed", name)
-            res.update(status="failed", why=f"{type(e).__name__}: {e}")
+            q.put((name, None, e))
+        q.put((name, None, _DONE))
+
+    for name, job in jobs.items():
+        threading.Thread(target=fetch, args=(name, job), daemon=True).start()
+    running = len(jobs)
+    while running:
+        name, page, err = q.get()
+        job, res = jobs[name], jobs[name]["res"]
+        if err is _DONE:
+            running -= 1
+        elif isinstance(err, Blocked):
+            res.update(status="degraded", why=f"blocked: {err}")
+        elif err is not None:
+            log.error("%s failed", name, exc_info=err)
+            res.update(status="failed", why=f"{type(err).__name__}: {err}")
+        else:
+            job["last_html"] = page.html
+            res["errors"] += page.errors
+            for l in page.listings:
+                res["seen"] += 1
+                change = db.upsert(conn, l, matches(l, cfg.search), fingerprint(l))
+                res["new"] += change == "new"
+                res["price_changes"] += change == "price_change"
+
+    results = []
+    for name, job in jobs.items():
+        res = job["res"]
         if res["status"] == "ok" and res["seen"] == 0:
             res.update(status="degraded", why="0 listings")
         elif res["status"] == "ok" and res["errors"] > res["seen"]:
             res.update(status="degraded", why=f"{res['errors']} parse errors")
-        if res["status"] != "ok" and last_html:
+        if res["status"] != "ok" and job["last_html"]:
             path = debug_dir / name / f"{date.today()}.html"
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(last_html)
-        db.finish_run(conn, run_id, res["status"], res["seen"], res["new"], res["price_changes"], res["errors"])
+            path.write_text(job["last_html"])
+        db.finish_run(conn, job["run_id"], res["status"], res["seen"], res["new"], res["price_changes"],
+                      res["errors"])
         # Only a full read of the results proves a listing is gone (not after an early stop).
-        if res["status"] == "ok" and not backfill and getattr(adapter, "complete", True):
+        if res["status"] == "ok" and not backfill and job["adapter"].complete:
             res["gone"] = db.mark_gone(conn, name)
         results.append(res)
     return results
@@ -103,12 +144,12 @@ STATUS_WORDS = {"active": "🟢 for sale again", "under_offer": "🟡 UNDER OFFE
 def check(cfg: Config, conn, http, listings: list[dict], adapters=ADAPTERS) -> list[dict]:
     """Open each listing page and store its sale status. Returns the listings whose status changed."""
     changed = []
+    sites = {name: adapters[name](http, src) for name, src in cfg.sources.items() if name in adapters}
     for l in listings:
-        src = cfg.sources.get(l["source"])
-        if l["source"] not in adapters or src is None:
+        if l["source"] not in sites:
             continue
         try:
-            status = adapters[l["source"]](http, src).listing_status(l["url"])
+            status = sites[l["source"]].listing_status(l["url"])
         except Blocked as e:
             log.warning("check stopped: %s", e)
             break
@@ -129,9 +170,10 @@ def backfill(cfg: Config, conn, http, town_ids: dict, max_pages: int = 50) -> li
 
 
 def run(cfg: Config, notifier, source: str | None = None, record: bool = True) -> list[dict]:
-    conn = db.connect(cfg.paths.db)
-    http = PoliteClient(cfg.http)
-    try:
+    with session(cfg) as (conn, http):
+        # Config may have changed since stored listings were matched; early stop means most of
+        # them are never seen again, so re-match everything first (fast, no network).
+        db.rematch(conn, lambda l: matches(l, cfg.search))
         results = collect(cfg, conn, http, source)
         notify(cfg, conn, notifier, results, record)
         if cfg.check.per_run:
@@ -143,6 +185,3 @@ def run(cfg: Config, notifier, source: str | None = None, record: bool = True) -
                     notifier.send(f"★ #{l['id']} {STATUS_WORDS[l['status']]}: {l['town'] or ''}, "
                                   f"{l['suburb'] or ''}\n{l['url']}")
         return results
-    finally:
-        http.close()
-        conn.close()

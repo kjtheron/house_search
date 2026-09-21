@@ -17,7 +17,7 @@ Always pass --json and summarise the result briefly.
 - "stats" / "how's the market" → bin/housebot stats --json
 - "is the scraper working" → bin/housebot sources --json
 - "which towns am I watching" → bin/housebot towns list --json
-- "add Paarl" / "also look in Paarl" → bin/housebot towns add Paarl --json
+- "add Paarl" / "also look in Paarl" → bin/housebot towns add Paarl --bg --json
 - "add Paarl with full history" → bin/housebot towns add Paarl --history --bg --json
 - "remove Paarl" / "stop looking in Paarl" → bin/housebot towns rm Paarl --json
   (deletes that town's listings except favourites; if the town list becomes empty, warn the owner that
@@ -28,7 +28,7 @@ Always pass --json and summarise the result briefly.
 `--bg` runs slow commands in the background; the owner gets a Telegram message when done.
 Tell the owner it has started. Use --bg for --history, backfill, and checks of more than 2 listings.
 
-If `towns add` says the town is unknown, offer the suggested spellings.
+`towns add` always runs with --bg (a new town may need a slow site lookup); if the Telegram result says the town is unknown, offer the suggested spellings.
 
 Never edit the database file directly. Never run `housebot run` unless the owner explicitly asks.
 Always include the listing URL and #id in answers.

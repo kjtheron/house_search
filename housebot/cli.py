@@ -21,11 +21,12 @@ import typer
 from . import config as config_mod
 from . import db, pipeline
 from . import towns as towns_mod
-from .http import PoliteClient
 from .match import matches
 from .notify import Console, Telegram, rand
 
-app = typer.Typer(help="Western Cape house-listing bot.", no_args_is_help=True, add_completion=False)
+app = typer.Typer(help="Western Cape house-listing bot.", no_args_is_help=True, add_completion=False,
+                  callback=lambda: logging.basicConfig(level=logging.INFO,
+                                                       format="%(levelname)s %(name)s: %(message)s"))
 fav_app = typer.Typer(help="Favourites.", no_args_is_help=True)
 config_app = typer.Typer(help="Config.", no_args_is_help=True)
 towns_app = typer.Typer(help="Which towns to alert for (search.towns in config.yaml).", no_args_is_help=True)
@@ -113,7 +114,6 @@ def _line(l: dict) -> str:
 def run(source: Annotated[Optional[str], typer.Option(help="Only this source.")] = None,
         dry_run: Annotated[bool, typer.Option("--dry-run", help="Print messages; no Telegram, no notification rows.")] = False):
     """Full pipeline: scrape, match, store, notify."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = _cfg()
     notifier = Console() if dry_run else Telegram()
     results = pipeline.run(cfg, notifier, source, record=not dry_run)
@@ -257,12 +257,13 @@ def towns_list(as_json: Json = False):
 def towns_add(town: str,
               history: Annotated[bool, typer.Option("--history", help="Also read every page of this town once "
                                                     "(full history; takes a few minutes).")] = False,
-              bg: Bg = False, as_json: Json = False):
+              bg: Bg = False, done: Done = False, as_json: Json = False):
     """Add a town. Existing listings there start matching and are alerted on the next run."""
+    if bg:  # the whole command: even the first town-ID lookup can take a minute
+        _spawn(["towns", "add", town, *(["--history"] if history else [])])
+        return _started(f"adding {town}" + (" with full history" if history else ""), as_json)
     cfg = _cfg()
-    conn = db.connect(cfg.paths.db)
-    http = PoliteClient(cfg.http)
-    try:
+    with pipeline.session(cfg) as (conn, http):
         known = db.town_names(conn)
         name = towns_mod.resolve(town, known)
         ids = None
@@ -271,26 +272,22 @@ def towns_add(town: str,
             name = name or next((hit[0] for hit in ids.values() if hit), None)
         if not name:
             hint = towns_mod.suggestions(town, known + towns_mod.all_site_towns(cfg))
-            typer.echo(f"Unknown town '{town}'." + (f" Did you mean: {', '.join(hint)}?" if hint else ""), err=True)
+            msg = f"Unknown town '{town}'." + (f" Did you mean: {', '.join(hint)}?" if hint else "")
+            if done:
+                _telegram("⚠️ " + msg)
+            typer.echo(msg, err=True)
             raise typer.Exit(1)
         if towns_mod.resolve(name, cfg.search.towns) is None:
             towns_mod.set_towns(cfg.search.towns + [name])
             cfg = _cfg()
         changed = db.rematch(conn, lambda l: matches(l, cfg.search))
-        extra = {"added": name, "rematched": changed}
-        if history and bg:
-            extra["backfill"] = "started in background"
-        elif history:
-            extra["backfill"] = pipeline.backfill(cfg, conn, http, ids)
-    finally:
-        http.close()
-    text = f"Added {name}. Towns: {', '.join(cfg.search.towns)}. {changed} stored listings changed match."
-    if history and bg:
-        _spawn(["backfill", name])
-        text += " Reading its full history in the background; Telegram message when done."
-    elif history:
-        text += "".join(f"\n  {r['source']}: {r['seen']} seen, {r['new']} new ({r['status']})" for r in extra["backfill"])
-    _out(_town_result(cfg, extra), as_json, lambda d: typer.echo(text))
+        results = pipeline.backfill(cfg, conn, http, ids) if history else []
+    text = f"Added {name}. Towns: {', '.join(cfg.search.towns)}. {changed} stored listings changed match." + "".join(
+        f"\n  {r['source']}: {r['seen']} seen, {r['new']} new ({r['status']})" for r in results)
+    if done:
+        _telegram("✅ " + text + ("\nNew matches come in the next daily run." if history else ""))
+    _out(_town_result(cfg, {"added": name, "rematched": changed, "backfill": results}), as_json,
+         lambda d: typer.echo(text))
 
 
 @towns_app.command("rm")
@@ -318,18 +315,15 @@ def backfill(town: str, bg: Bg = False, done: Done = False, as_json: Json = Fals
     if bg:
         _spawn(["backfill", town])
         return _started(f"full-history read of {town}", as_json)
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = _cfg()
-    conn = db.connect(cfg.paths.db)
-    http = PoliteClient(cfg.http)
-    try:
+    with pipeline.session(cfg) as (conn, http):
         ids = towns_mod.town_ids(cfg, http, town)
         if not any(ids.values()):
+            if done:
+                _telegram(f"⚠️ No site knows a town called '{town}'.")
             typer.echo(f"No site knows a town called '{town}'.", err=True)
             raise typer.Exit(1)
         results = pipeline.backfill(cfg, conn, http, ids)
-    finally:
-        http.close()
     summary = "\n".join(f"{r['source']}: {r['seen']} seen, {r['new']} new, {r['status']}" for r in results)
     if done:
         _telegram(f"✅ Full history of {town} done.\n{summary}\nNew matches come in the next daily run.")
@@ -346,13 +340,9 @@ def check(listing_ids: Annotated[Optional[list[int]], typer.Argument(help="Listi
         _spawn(argv)
         return _started("availability check", as_json)
     cfg = _cfg()
-    conn = db.connect(cfg.paths.db)
-    todo = db.to_check(conn, listing_ids, favs, limit)
-    http = PoliteClient(cfg.http)
-    try:
+    with pipeline.session(cfg) as (conn, http):
+        todo = db.to_check(conn, listing_ids, favs, limit)
         changed = pipeline.check(cfg, conn, http, todo)
-    finally:
-        http.close()
     out = [{"id": l["id"], "old_status": l["old_status"], "status": l["status"], "url": l["url"]} for l in changed]
     text = f"Checked {len(todo)} listings." + ("".join(
         f"\n#{c['id']}: {pipeline.STATUS_WORDS[c['status']]}  {c['url']}" for c in out) or " No changes.")

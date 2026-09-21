@@ -11,7 +11,6 @@ from Telegram without anyone editing YAML by hand.
 
 import difflib
 import json
-import os
 import re
 from pathlib import Path
 
@@ -23,12 +22,8 @@ from .adapters import ADAPTERS
 TOWNS_LINE = re.compile(r"^(\s+towns:[ \t]*)\[[^\]\n]*\](.*)$", re.M)
 
 
-def config_path() -> Path:
-    return Path(os.environ.get("HOUSEBOT_CONFIG", "config.yaml"))
-
-
 def set_towns(towns: list[str], path: Path | None = None) -> None:
-    path = path or config_path()
+    path = path or config_mod.path()
     text = path.read_text()
     if not TOWNS_LINE.search(text):
         raise config_mod.ConfigError(f"{path}: expected a one-line `towns: [...]` under search:")
