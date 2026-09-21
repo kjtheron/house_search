@@ -18,6 +18,7 @@ import yaml
 
 from . import config as config_mod
 from .adapters import ADAPTERS
+from .match import _key
 
 TOWNS_LINE = re.compile(r"^(\s+towns:[ \t]*)\[[^\]\n]*\](.*)$", re.M)
 LOCATIONS_LINE = re.compile(r"^(\s+locations:[ \t]*)\{[^}\n]*\}(.*)$", re.M)
@@ -54,10 +55,6 @@ def update_config(towns: list[str] | None = None, locations: dict[str, dict[str,
 
 def set_towns(towns: list[str], path: Path | None = None) -> None:
     update_config(towns=towns, path=path)
-
-
-def _key(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", name.lower())
 
 
 def resolve(name: str, known: list[str]) -> str | None:

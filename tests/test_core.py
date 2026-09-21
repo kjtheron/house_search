@@ -425,3 +425,38 @@ def test_towns_add_rm_in_town_mode(tmp_path, monkeypatch):
     assert load(cfg).sources["property24"].locations == {"Somerset West": 390}
     r = run(cli.app, ["towns", "rm", "Somerset West"])
     assert "property24 has no towns left" in r.output and "EMPTY" in r.output
+
+
+def test_caps_suburb_exclusion_and_garden():
+    s = SEARCH.model_copy(update={"beds_max": 4, "baths_max": 3, "garages_max": 2,
+                                  "exclude_suburbs": ["sir lowrys pass"], "garden_min_m2": 300})
+    assert reasons(house(beds=5), s) == ["beds 5 > 4"]
+    assert reasons(house(garages=3), s) == ["garages 3 > 2"]
+    assert reasons(house(suburb="Sir Lowry's Pass"), s) == ["suburb Sir Lowry's Pass excluded"]
+    assert reasons(house(erf_m2=600, floor_m2=200), s) == []          # garden ~400
+    assert reasons(house(erf_m2=400, floor_m2=200), s) == ["garden 200 < 300"]
+    assert reasons(house(price=5_000_000), s) == ["price 5000000 > 4500000"]
+
+
+def test_same_house_across_sites_without_sizes(conn):
+    # The Heldervue pair: neither card had a size, everything else equal.
+    a = house("117272873", suburb="Heldervue", property_type="house", erf_m2=None, price=2_795_000)
+    b = house("T5505451", "privateproperty", suburb="Heldervue", property_type="house", erf_m2=None, price=2_795_000)
+    put(conn, a)
+    put(conn, b)
+    assert send_all(conn) == [(1, "new")]
+    fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
+    assert fps[0] == fps[1] == "property24:117272873"
+
+
+def test_same_house_when_sites_give_different_sizes(conn):
+    put(conn, house("1", erf_m2=487, floor_m2=None, price=2_350_000))
+    put(conn, house("T1", "privateproperty", erf_m2=490, floor_m2=162, price=2_300_000))  # erf within 2%
+    assert send_all(conn) == [(1, "new")]
+
+
+def test_not_same_house(conn):
+    put(conn, house("1", erf_m2=None, price=2_795_000))
+    put(conn, house("T1", "privateproperty", erf_m2=None, price=2_800_000))  # other price, no sizes
+    put(conn, house("2", erf_m2=None, price=2_795_000))                      # same site: never merged
+    assert len(send_all(conn)) == 3

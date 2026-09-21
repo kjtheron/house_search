@@ -4,8 +4,15 @@ The sites only pre-filter, so every rule is checked again here. reasons() return
 listing fails (handy for debugging); an empty list means it matches.
 """
 
+import re
+
 from .config import SearchConfig
 from .models import Listing
+
+
+def _key(name: str) -> str:
+    """Loose place-name key: "Sir Lowry's Pass" == "sir lowrys pass"."""
+    return re.sub(r"[^a-z0-9]+", "", name.lower())
 
 
 def matches(l: Listing, s: SearchConfig) -> bool:
@@ -16,14 +23,18 @@ def reasons(l: Listing, s: SearchConfig) -> list[str]:
     """Why the listing fails the search. Empty list = match."""
     out = []
 
-    def at_least(name, value, minimum):
-        if minimum is None:
+    num = lambda v: f"{v:g}" if isinstance(v, float) else str(v)
+
+    def between(name, value, lo, hi):
+        if lo is None and hi is None:
             return
         if value is None:
             if not s.unknown_values_pass:
                 out.append(f"{name} unknown")
-        elif value < minimum:
-            out.append(f"{name} {value} < {minimum}")
+        elif lo is not None and value < lo:
+            out.append(f"{name} {num(value)} < {num(lo)}")
+        elif hi is not None and value > hi:
+            out.append(f"{name} {num(value)} > {num(hi)}")
 
     def one_of(name, value, allowed):
         if not allowed:
@@ -31,24 +42,30 @@ def reasons(l: Listing, s: SearchConfig) -> list[str]:
         if value is None:
             if not s.unknown_values_pass:
                 out.append(f"{name} unknown")
-        elif value.lower() not in {a.lower() for a in allowed}:
+        elif _key(value) not in {_key(a) for a in allowed}:
             out.append(f"{name} {value} not wanted")
+
+    def none_of(name, value, banned):
+        if value and _key(value) in {_key(b) for b in banned}:
+            out.append(f"{name} {value} excluded")
 
     if l.province and l.province != s.province:
         out.append(f"province {l.province}")
     one_of("town", l.town, s.towns)
-    if l.town and l.town.lower() in {t.lower() for t in s.exclude_towns}:
-        out.append(f"town {l.town} excluded")
+    none_of("town", l.town, s.exclude_towns)
     one_of("suburb", l.suburb, s.suburbs)
+    none_of("suburb", l.suburb, s.exclude_suburbs)
     one_of("type", l.property_type, s.property_types)
-    at_least("price", l.price, s.price_min)
-    if s.price_max is not None and l.price is not None and l.price > s.price_max:
-        out.append(f"price {l.price} > {s.price_max}")
-    at_least("beds", l.beds, s.beds_min)
-    at_least("baths", l.baths, s.baths_min)
-    at_least("garages", l.garages, s.garages_min)
-    at_least("floor", l.floor_m2, s.floor_min_m2)
-    at_least("erf", l.erf_m2, s.erf_min_m2)
+    between("price", l.price, s.price_min, s.price_max)
+    between("beds", l.beds, s.beds_min, s.beds_max)
+    between("baths", l.baths, s.baths_min, s.baths_max)
+    between("garages", l.garages, s.garages_min, s.garages_max)
+    between("floor", l.floor_m2, s.floor_min_m2, s.floor_max_m2)
+    between("erf", l.erf_m2, s.erf_min_m2, s.erf_max_m2)
+    # ponytail: no site gives garden size; erf - floor is a rough stand-in (a double storey's floor
+    # area counts both levels, so it under-estimates). Unknown when either size is missing.
+    garden = l.erf_m2 - l.floor_m2 if l.erf_m2 and l.floor_m2 else None
+    between("garden", garden, s.garden_min_m2, None)
     if l.listing_kind == "auction" and not s.include_auctions:
         out.append("auction")
 

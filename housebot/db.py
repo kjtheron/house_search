@@ -54,13 +54,15 @@ def upsert(conn, l: Listing, matches: bool, fp: str, ts: str | None = None) -> s
         old = conn.execute("SELECT id, price, status FROM listings WHERE source=? AND source_listing_id=?",
                            (l.source, l.source_listing_id)).fetchone()
         if old is None:
+            row["fingerprint"] = same_house(conn, l) or fp
             cols = list(row) + ["first_seen", "last_seen"]
             cur = conn.execute(f"INSERT INTO listings ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})",
                                [*row.values(), ts, ts])
             conn.execute("INSERT INTO price_history VALUES (?,?,?)", (cur.lastrowid, l.price, ts))
             return "new"
-        # Keep known values if this pass didn't see them (e.g. card vs. detail page).
-        updates = {k: v for k, v in row.items() if v is not None or k in ("price", "matches")}
+        # Keep known values if this pass didn't see them (e.g. card vs. detail page), and keep the
+        # fingerprint: it may have been joined to the same house on another site.
+        updates = {k: v for k, v in row.items() if (v is not None or k in ("price", "matches")) and k != "fingerprint"}
         sets = ", ".join(f"{k}=?" for k in updates)
         conn.execute(f"UPDATE listings SET {sets}, last_seen=? WHERE id=?",
                      [*updates.values(), ts, old["id"]])
@@ -68,6 +70,25 @@ def upsert(conn, l: Listing, matches: bool, fp: str, ts: str | None = None) -> s
             conn.execute("INSERT INTO price_history VALUES (?,?,?)", (old["id"], l.price, ts))
             return "price_change"
         return "relisted" if old["status"] in ("gone", "sold") and l.status == "active" else "unchanged"
+
+
+def same_house(conn, l: Listing) -> str | None:
+    """Fingerprint of this house as already listed on *another* site, if any.
+
+    Same suburb, type, beds and baths, plus the same price or an erf/floor size within 2%.
+    Catches pairs the size-based fingerprint misses (a card without sizes, or one site giving
+    only floor size and the other only erf). Garages are ignored: sites count parking differently.
+    """
+    if not (l.suburb and l.beds is not None):
+        return None
+    rows = conn.execute("SELECT fingerprint, price, erf_m2, floor_m2 FROM listings WHERE source <> ? "
+                        "AND lower(suburb) = lower(?) AND beds = ? AND baths IS ? AND property_type IS ?",
+                        (l.source, l.suburb, l.beds, l.baths, l.property_type)).fetchall()
+    close = lambda a, b: a and b and abs(a - b) <= 0.02 * max(a, b)
+    for r in rows:
+        if (l.price and r["price"] == l.price) or close(l.erf_m2, r["erf_m2"]) or close(l.floor_m2, r["floor_m2"]):
+            return r["fingerprint"]
+    return None
 
 
 def start_run(conn, source: str) -> int:

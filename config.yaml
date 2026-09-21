@@ -6,14 +6,22 @@ search:
   towns: [Somerset West, Paarl]                                      # only these towns; [] = any town. Or: housebot towns add/rm
   exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
+  exclude_suburbs: []                            # never alert for these
   property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
   price_min: 1500000                             # ZAR
   price_max: 2800000
+  # min/max pairs: leave a value empty (null) for no limit
   beds_min: 3
+  beds_max: 4
   baths_min: 2
+  baths_max: 3
   garages_min: 0
+  garages_max: 2
   floor_min_m2: 150                              # optional
+  floor_max_m2: null
   erf_min_m2: 400                                # optional
+  erf_max_m2: null
+  garden_min_m2: 15                            # estimated as erf - floor; needs both sizes on the listing
   include_keywords: []                           # all must appear in title + description
   exclude_keywords: [retirement, "life right", "share block"]
   include_auctions: false

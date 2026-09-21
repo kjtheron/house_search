@@ -25,14 +25,21 @@ class SearchConfig(Strict):
     towns: list[str] = []          # empty = any town
     exclude_towns: list[str] = []
     suburbs: list[str] = []
+    exclude_suburbs: list[str] = []
     property_types: list[PropertyType] = ["house"]
     price_min: int | None = None
     price_max: int | None = None
     beds_min: float | None = None
+    beds_max: float | None = None
     baths_min: float | None = None
+    baths_max: float | None = None
     garages_min: int | None = None
+    garages_max: int | None = None
     floor_min_m2: int | None = None
+    floor_max_m2: int | None = None
     erf_min_m2: int | None = None
+    erf_max_m2: int | None = None
+    garden_min_m2: int | None = None  # estimated as erf - floor size (see match.py)
     include_keywords: list[str] = []
     exclude_keywords: list[str] = []
     include_auctions: bool = False
