@@ -26,9 +26,10 @@ uv run housebot config show       # check the config
 uv run housebot run --dry-run     # scrape + print the alerts, send nothing
 ```
 
-Both sites are searched province-wide, newest first, so after the first run each source reads only a
-few pages a day. `towns` in `config.yaml` (or `housebot towns add/rm`) just filters what you get alerted
-about. Each run also re-checks a few favourites and matches (`check.per_run`) and tells you if a
+Each site searches either a list of towns (`locations: {Town: site ID}`, best for a few towns) or the
+whole province (`locations: {}`, best for "anywhere"), newest first, so after the first run it reads
+only a few pages a day. `towns` filters what you get alerted about. `housebot towns add/rm` keeps
+`towns` and the town-mode `locations` in step, looking up each site's ID for you. Each run also re-checks a few favourites and matches (`check.per_run`) and tells you if a
 favourite is sold or under offer.
 
 `--dry-run` prints the Telegram messages instead of sending them and records nothing as sent, so you can repeat it.
@@ -47,7 +48,7 @@ uv run housebot hide 142                             # never alert about this ho
 uv run housebot stats                                # counts per town, median price, last runs
 uv run housebot sources                              # is each scraper healthy?
 uv run housebot towns list                           # town filter (empty = whole province)
-uv run housebot towns add Paarl                      # alert for Paarl too
+uv run housebot towns add Paarl                      # alert for Paarl too (+ its site IDs in town mode)
 uv run housebot towns add Paarl --history            # ...and read all of Paarl's current listings once
 uv run housebot towns rm Paarl                       # stop, and delete Paarl's listings (favourites kept)
 uv run housebot check 142                            # still for sale? (sold / under offer / gone)

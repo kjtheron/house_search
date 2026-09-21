@@ -377,3 +377,51 @@ def test_wrong_location_id_is_reported():
 
     with pytest.raises(ValueError, match="location ID 390 is not Somerset West"):
         list(A(Redirecting(), SourceConfig(locations={"Somerset West": 390})).pages(SEARCH))
+
+
+def test_update_config_edits_only_that_sources_locations(tmp_path):
+    from housebot import towns
+    p = tmp_path / "c.yaml"
+    p.write_text("search:\n  towns: [Paarl]  # t\nsources:\n"
+                 "  property24:\n    province_id: 9\n    locations: {Paarl: 344}   # p24 ids\n"
+                 "  privateproperty:\n    province_id: 4\n    locations: {Paarl: 715}   # pp ids\n")
+    towns.update_config(locations={"privateproperty": {"Paarl": 715, "Gordon's Bay": 710}}, path=p)
+    text = p.read_text()
+    assert "locations: {Paarl: 344}   # p24 ids" in text  # other source untouched
+    assert "locations: {Paarl: 715, Gordon's Bay: 710}   # pp ids" in text
+    with pytest.raises(ConfigError, match="property24.locations has no ID for: Gordon's Bay"):
+        towns.update_config(towns=["Paarl", "Gordon's Bay"], path=p)  # p24 lacks it -> refused
+    assert p.read_text() == text  # rolled back
+
+
+def test_loose_town_names_and_slugs():
+    from housebot import towns
+    from housebot.adapters.base import slug
+    assert towns.resolve("sir lowrys pass", ["Sir Lowry's Pass"]) == "Sir Lowry's Pass"
+    assert slug("Gordon's Bay") == "gordons-bay" and slug("Somerset West") == "somerset-west"
+
+
+def test_towns_add_rm_in_town_mode(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+    from housebot import cli, towns
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(f"search:\n  towns: [Paarl]\nsources:\n"
+                   f"  property24:\n    province_id: 9\n    locations: {{Paarl: 344}}\n"
+                   f"  privateproperty:\n    province_id: 4\n    locations: {{}}\n"
+                   f"paths:\n  db: {tmp_path / 'h.db'}\n")
+    monkeypatch.setenv("HOUSEBOT_CONFIG", str(cfg))
+    monkeypatch.setattr(towns, "town_ids", lambda c, http, t: {"property24": ("Somerset West", 390),
+                                                                "privateproperty": ("Somerset West", 711)})
+    run = CliRunner().invoke
+    r = run(cli.app, ["towns", "add", "somerset west"])
+    assert r.exit_code == 0, r.output
+    c = load(cfg)
+    assert c.search.towns == ["Paarl", "Somerset West"]
+    assert c.sources["property24"].locations == {"Paarl": 344, "Somerset West": 390}
+    assert c.sources["privateproperty"].locations == {}  # province mode: left alone
+
+    r = run(cli.app, ["towns", "rm", "Paarl"])
+    assert r.exit_code == 0, r.output
+    assert load(cfg).sources["property24"].locations == {"Somerset West": 390}
+    r = run(cli.app, ["towns", "rm", "Somerset West"])
+    assert "property24 has no towns left" in r.output and "EMPTY" in r.output

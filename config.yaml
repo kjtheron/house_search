@@ -3,7 +3,7 @@
 
 search:
   province: western-cape
-  towns: [Somerset West]                                      # only these towns; [] = any town. Or: housebot towns add/rm
+  towns: [Somerset West, Paarl]                                      # only these towns; [] = any town. Or: housebot towns add/rm
   exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
   property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
@@ -20,7 +20,7 @@ search:
   unknown_values_pass: true                      # listing lacks floor size -> still passes?
 
 # Where each site searches. `locations` = town -> the site's location ID; leave it empty ({})
-# to search the whole province (province_id). Find IDs in the site's search URL:
+# to search the whole province (province_id). `housebot towns add/rm` fills these in for you. Find IDs in the site's search URL:
 #   property24.com/houses-for-sale/stellenbosch/western-cape/459  -> 459  (province: /western-cape/9)
 #   privateproperty.co.za/for-sale/western-cape/boland/stellenbosch/712  -> 712  (province: /western-cape/4)
 # max_pages is per town (or province) per property type.
@@ -31,13 +31,13 @@ sources:
     enabled: true
     max_pages: 15
     province_id: 9
-    locations: {}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
+    locations: {Somerset West: 390, Paarl: 344}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
   privateproperty:
     # Also newest first. Note: it names Cape Town areas "Cape Flats", "Southern Suburbs", etc.
     enabled: true
     max_pages: 15
     province_id: 4
-    locations: {}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
+    locations: {Somerset West: 711, Paarl: 715}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
 
 http:
   min_delay_s: 5

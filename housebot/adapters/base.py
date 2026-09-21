@@ -109,7 +109,8 @@ def text(node: Node, sel: str) -> str | None:
 
 
 def slug(s: str) -> str:
-    return "-".join(s.lower().split())
+    """URL form of a place name: "Gordon's Bay" -> "gordons-bay"."""
+    return re.sub(r"[^a-z0-9]+", "-", s.lower().replace("'", "")).strip("-")
 
 
 # Site URL words per config property type.

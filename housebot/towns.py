@@ -3,8 +3,8 @@
 Used by `housebot towns list/add/rm` and `housebot backfill`, so the owner can change towns
 from Telegram without anyone editing YAML by hand.
 
-- set_towns() rewrites only the `towns:` line, keeps every comment, and checks the result
-  still loads before saving.
+- update_config() rewrites only the `towns:` line and the `locations:` line of the sources you
+  pass, keeps every comment, and checks the result still loads before saving.
 - town_ids() finds each site's location ID for a town (needed for a full-history backfill),
   cached in data/locations.json so the site lists are fetched once.
 """
@@ -20,15 +20,30 @@ from . import config as config_mod
 from .adapters import ADAPTERS
 
 TOWNS_LINE = re.compile(r"^(\s+towns:[ \t]*)\[[^\]\n]*\](.*)$", re.M)
+LOCATIONS_LINE = re.compile(r"^(\s+locations:[ \t]*)\{[^}\n]*\}(.*)$", re.M)
 
 
-def set_towns(towns: list[str], path: Path | None = None) -> None:
+def _flow(value) -> str:
+    return yaml.safe_dump(value, default_flow_style=True, width=10_000, sort_keys=False).strip()
+
+
+def update_config(towns: list[str] | None = None, locations: dict[str, dict[str, int]] | None = None,
+                  path: Path | None = None) -> None:
+    """Set search.towns and/or sources.<name>.locations in one checked write (rolled back if invalid)."""
     path = path or config_mod.path()
-    text = path.read_text()
-    if not TOWNS_LINE.search(text):
-        raise config_mod.ConfigError(f"{path}: expected a one-line `towns: [...]` under search:")
-    flow = yaml.safe_dump(towns, default_flow_style=True, width=10_000).strip()
-    new = TOWNS_LINE.sub(lambda m: f"{m[1]}{flow}{m[2]}", text, count=1)
+    text = new = path.read_text()
+    if towns is not None:
+        if not TOWNS_LINE.search(new):
+            raise config_mod.ConfigError(f"{path}: expected a one-line `towns: [...]` under search:")
+        new = TOWNS_LINE.sub(lambda m: f"{m[1]}{_flow(towns)}{m[2]}", new, count=1)
+    for source, locs in (locations or {}).items():
+        head = re.search(rf"^  {re.escape(source)}:[ \t]*$", new, re.M)
+        end = re.compile(r"^ {0,2}\S", re.M).search(new, head.end()) if head else None
+        block = slice(head.end(), end.start() if end else len(new)) if head else None
+        if not block or not LOCATIONS_LINE.search(new[block]):
+            raise config_mod.ConfigError(f"{path}: expected a one-line `locations: {{...}}` under {source}:")
+        new = new[:block.start] + LOCATIONS_LINE.sub(lambda m: f"{m[1]}{_flow(locs)}{m[2]}", new[block], count=1) \
+            + new[block.stop:]
     path.write_text(new)
     try:
         config_mod.load(path)
@@ -37,9 +52,17 @@ def set_towns(towns: list[str], path: Path | None = None) -> None:
         raise
 
 
+def set_towns(towns: list[str], path: Path | None = None) -> None:
+    update_config(towns=towns, path=path)
+
+
+def _key(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", name.lower())
+
+
 def resolve(name: str, known: list[str]) -> str | None:
-    """Case-insensitive match against known town names; returns the stored spelling."""
-    return next((k for k in known if k.lower() == name.strip().lower()), None)
+    """Loose match against known town names ("sir lowrys pass" = "Sir Lowry's Pass"); returns the stored spelling."""
+    return next((k for k in known if _key(k) == _key(name)), None)
 
 
 def suggestions(name: str, known: list[str]) -> list[str]:

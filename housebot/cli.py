@@ -263,31 +263,43 @@ def towns_add(town: str,
         _spawn(["towns", "add", town, *(["--history"] if history else [])])
         return _started(f"adding {town}" + (" with full history" if history else ""), as_json)
     cfg = _cfg()
+    town_mode = {n: src for n, src in cfg.sources.items() if src.enabled and src.locations}
     with pipeline.session(cfg) as (conn, http):
         known = db.town_names(conn)
         name = towns_mod.resolve(town, known)
+        need_ids = [n for n, src in town_mode.items() if not towns_mod.resolve(name or town, list(src.locations))]
         ids = None
-        if not name or history:  # unknown here: ask the sites (also needed for --history)
+        if not name or history or need_ids:  # ask the sites (cached after the first time)
             ids = towns_mod.town_ids(cfg, http, town)
             name = name or next((hit[0] for hit in ids.values() if hit), None)
-        if not name:
-            hint = towns_mod.suggestions(town, known + towns_mod.all_site_towns(cfg))
-            msg = f"Unknown town '{town}'." + (f" Did you mean: {', '.join(hint)}?" if hint else "")
+
+        def fail(msg):
             if done:
                 _telegram("⚠️ " + msg)
             typer.echo(msg, err=True)
             raise typer.Exit(1)
-        if towns_mod.resolve(name, cfg.search.towns) is None:
-            towns_mod.set_towns(cfg.search.towns + [name])
+
+        if not name:
+            hint = towns_mod.suggestions(town, known + towns_mod.all_site_towns(cfg))
+            fail(f"Unknown town '{town}'." + (f" Did you mean: {', '.join(hint)}?" if hint else ""))
+        # Sources that search town by town need this town's ID on their site.
+        missing = [n for n in need_ids if not ids.get(n)]
+        if missing:
+            fail(f"{name} not found on {', '.join(missing)}, so it can't be added to their town list.")
+        locations = {n: town_mode[n].locations | {name: ids[n][1]} for n in need_ids}
+        towns = cfg.search.towns + ([name] if towns_mod.resolve(name, cfg.search.towns) is None else [])
+        if locations or towns != cfg.search.towns:
+            towns_mod.update_config(towns=towns, locations=locations)
             cfg = _cfg()
         changed = db.rematch(conn, lambda l: matches(l, cfg.search))
         results = pipeline.backfill(cfg, conn, http, ids) if history else []
-    text = f"Added {name}. Towns: {', '.join(cfg.search.towns)}. {changed} stored listings changed match." + "".join(
-        f"\n  {r['source']}: {r['seen']} seen, {r['new']} new ({r['status']})" for r in results)
+    text = (f"Added {name}. Towns: {', '.join(cfg.search.towns)}. {changed} stored listings changed match."
+            + "".join(f"\n  {n} location ID: {locs[name]}" for n, locs in locations.items())
+            + "".join(f"\n  {r['source']}: {r['seen']} seen, {r['new']} new ({r['status']})" for r in results))
     if done:
         _telegram("✅ " + text + ("\nNew matches come in the next daily run." if history else ""))
-    _out(_town_result(cfg, {"added": name, "rematched": changed, "backfill": results}), as_json,
-         lambda d: typer.echo(text))
+    _out(_town_result(cfg, {"added": name, "rematched": changed, "locations": locations, "backfill": results}),
+         as_json, lambda d: typer.echo(text))
 
 
 @towns_app.command("rm")
@@ -298,12 +310,20 @@ def towns_rm(town: str, as_json: Json = False):
     if not name:
         typer.echo(f"'{town}' is not in the town list: {', '.join(cfg.search.towns) or '(empty)'}", err=True)
         raise typer.Exit(1)
-    towns_mod.set_towns([t for t in cfg.search.towns if t != name])
+    locations = {}
+    for n, src in cfg.sources.items():
+        key = towns_mod.resolve(name, list(src.locations))
+        if key:
+            locations[n] = {t: i for t, i in src.locations.items() if t != key}
+    towns_mod.update_config(towns=[t for t in cfg.search.towns if t != name], locations=locations)
     cfg = _cfg()
     conn = db.connect(cfg.paths.db)
     deleted, kept = db.delete_town(conn, name)
     changed = db.rematch(conn, lambda l: matches(l, cfg.search))
-    warn = "" if cfg.search.towns else " Town list is now EMPTY: the next run alerts for ANY town in the province."
+    warn = "".join(f" {n} has no towns left, so it now searches the WHOLE province."
+                   for n, locs in locations.items() if not locs)
+    if not cfg.search.towns:
+        warn += " Town list is now EMPTY: the next run alerts for ANY town in the province."
     _out(_town_result(cfg, {"removed": name, "deleted": deleted, "kept_favourites": kept, "rematched": changed,
                             "warning": warn.strip() or None}), as_json,
          lambda d: typer.echo(f"Removed {name}: deleted {deleted} listings, kept {kept} favourites.{warn}"))
