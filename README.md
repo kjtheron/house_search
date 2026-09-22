@@ -50,6 +50,7 @@ uv run housebot sources                              # is each scraper healthy?
 uv run housebot towns list                           # town filter (empty = whole province)
 uv run housebot towns add Paarl                      # alert for Paarl too (+ its site IDs in town mode)
 uv run housebot towns add Paarl --history            # ...and read all of Paarl's current listings once
+uv run housebot backfill --pages 30                  # one-off: go ~30 pages further back (no early stop)
 uv run housebot towns rm Paarl                       # stop, and delete Paarl's listings (favourites kept)
 uv run housebot check 142                            # still for sale? (sold / under offer / gone)
 uv run housebot check --favs --bg                    # --bg: run in background, Telegram message when done

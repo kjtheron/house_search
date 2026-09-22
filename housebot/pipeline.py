@@ -163,11 +163,16 @@ def check(cfg: Config, conn, http, listings: list[dict], adapters=ADAPTERS) -> l
     return changed
 
 
-def backfill(cfg: Config, conn, http, town_ids: dict, max_pages: int = 50) -> list[dict]:
-    """Read every page for one town on each site ({source: (site town name, location ID)})."""
-    sources = {name: cfg.sources[name].model_copy(update={"locations": {town: loc}, "max_pages": max_pages})
-               for name, hit in town_ids.items() if hit for town, loc in [hit]}
-    return collect(cfg.model_copy(update={"sources": sources}), conn, http, backfill=True)
+def backfill(cfg: Config, conn, http, town_ids: dict | None = None, max_pages: int = 50,
+             adapters=ADAPTERS) -> list[dict]:
+    """Read up to max_pages per type with no early stop: for one town ({source: (site town name,
+    location ID)}), or with town_ids=None for each source's normal search (e.g. the whole province)."""
+    if town_ids is None:
+        sources = {name: src.model_copy(update={"max_pages": max_pages}) for name, src in cfg.sources.items()}
+    else:
+        sources = {name: cfg.sources[name].model_copy(update={"locations": {town: loc}, "max_pages": max_pages})
+                   for name, hit in town_ids.items() if hit for town, loc in [hit]}
+    return collect(cfg.model_copy(update={"sources": sources}), conn, http, adapters=adapters, backfill=True)
 
 
 def run(cfg: Config, notifier, source: str | None = None, record: bool = True) -> list[dict]:

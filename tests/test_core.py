@@ -460,3 +460,22 @@ def test_not_same_house(conn):
     put(conn, house("T1", "privateproperty", erf_m2=None, price=2_800_000))  # other price, no sizes
     put(conn, house("2", erf_m2=None, price=2_795_000))                      # same site: never merged
     assert len(send_all(conn)) == 3
+
+
+
+def test_backfill_whole_search_reads_past_known(conn, tmp_path):
+    from housebot.pipeline import backfill
+    calls = []
+
+    class A(FakeAdapter):
+        def __init__(self, http, src):
+            self.src = src
+
+        def pages(self, cfg, known=frozenset()):
+            calls.append((set(known), self.src.max_pages, self.src.locations))
+            yield Page(listings=[house("9")])
+
+    put(conn, house("1"))
+    cfg = Config(search=SEARCH, sources={"property24": {"province_id": 9}})
+    backfill(cfg, conn, None, max_pages=7, adapters={"property24": A})
+    assert calls == [(set(), 7, {})]  # no early stop, deeper, still province-wide

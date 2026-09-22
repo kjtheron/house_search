@@ -330,23 +330,30 @@ def towns_rm(town: str, as_json: Json = False):
 
 
 @app.command()
-def backfill(town: str, bg: Bg = False, done: Done = False, as_json: Json = False):
-    """Read every page of one town once (full history), e.g. after adding it. Takes a few minutes."""
+def backfill(town: Annotated[Optional[str], typer.Argument(help="One town's full history; leave out to go "
+                                                          "back further in each site's normal search.")] = None,
+             pages: Annotated[int, typer.Option(help="Pages per property type per site (~20 listings each).",
+                                                min=1, max=100)] = 30,
+             bg: Bg = False, done: Done = False, as_json: Json = False):
+    """Read older listings once, with no early stop: one town, or (no town) the normal search deeper."""
+    what = f"full-history read of {town}" if town else f"backfill ({pages} pages per type)"
     if bg:
-        _spawn(["backfill", town])
-        return _started(f"full-history read of {town}", as_json)
+        _spawn(["backfill", *([town] if town else []), "--pages", str(pages)])
+        return _started(what, as_json)
     cfg = _cfg()
     with pipeline.session(cfg) as (conn, http):
-        ids = towns_mod.town_ids(cfg, http, town)
-        if not any(ids.values()):
-            if done:
-                _telegram(f"⚠️ No site knows a town called '{town}'.")
-            typer.echo(f"No site knows a town called '{town}'.", err=True)
-            raise typer.Exit(1)
-        results = pipeline.backfill(cfg, conn, http, ids)
+        ids = None
+        if town:
+            ids = towns_mod.town_ids(cfg, http, town)
+            if not any(ids.values()):
+                if done:
+                    _telegram(f"⚠️ No site knows a town called '{town}'.")
+                typer.echo(f"No site knows a town called '{town}'.", err=True)
+                raise typer.Exit(1)
+        results = pipeline.backfill(cfg, conn, http, ids, max_pages=pages)
     summary = "\n".join(f"{r['source']}: {r['seen']} seen, {r['new']} new, {r['status']}" for r in results)
     if done:
-        _telegram(f"✅ Full history of {town} done.\n{summary}\nNew matches come in the next daily run.")
+        _telegram(f"✅ {what[0].upper() + what[1:]} done.\n{summary}\nNew matches come in the next daily run.")
     _out(results, as_json, lambda rs: typer.echo(summary))
 
 

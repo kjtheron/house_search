@@ -3,20 +3,20 @@
 
 search:
   province: western-cape
-  towns: [Somerset West, Paarl]                                      # only these towns; [] = any town. Or: housebot towns add/rm
+  towns: []                                      # only these towns; [] = any town. Or: housebot towns add/rm
   exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
   exclude_suburbs: []                            # never alert for these
   property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
-  price_min: 1500000                             # ZAR
+  price_min: 2000000                             # ZAR
   price_max: 2800000
   # min/max pairs: leave a value empty (null) for no limit
   beds_min: 3
   beds_max: 4
-  baths_min: 2
+  baths_min: 1
   baths_max: 3
   garages_min: 0
-  garages_max: 2
+  garages_max: 3
   floor_min_m2: 150                              # optional
   floor_max_m2: null
   erf_min_m2: 400                                # optional
@@ -39,13 +39,13 @@ sources:
     enabled: true
     max_pages: 15
     province_id: 9
-    locations: {Somerset West: 390, Paarl: 344}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
+    locations: {}       # e.g. {Stellenbosch: 459, Somerset West: 390, Paarl: 344}
   privateproperty:
     # Also newest first. Note: it names Cape Town areas "Cape Flats", "Southern Suburbs", etc.
     enabled: true
     max_pages: 15
     province_id: 4
-    locations: {Somerset West: 711, Paarl: 715}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
+    locations: {}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
 
 http:
   min_delay_s: 5
