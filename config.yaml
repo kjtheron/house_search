@@ -21,7 +21,13 @@ search:
   floor_max_m2: null
   erf_min_m2: 400                                # optional
   erf_max_m2: null
-  garden_min_m2: 15                            # estimated as erf - floor; needs both sizes on the listing
+  garden_min_m2: 15                              # estimated as erf - floor footprint; needs both sizes
+  # These need the listing's own page (see details: below); until fetched they count as unknown.
+  storeys_max: 2                              # e.g. 1 = single storey only
+  ensuite_min: null
+  require_features: []                           # e.g. [garden, flatlet]; names: `housebot features`
+  exclude_features: []                           # e.g. [pool]
+  max_listing_age_days: null                     # skip listings on the market longer than this
   include_keywords: []                           # all must appear in title + description
   exclude_keywords: [retirement, "life right", "share block"]
   include_auctions: false
@@ -57,6 +63,10 @@ notify:
   max_per_run: 25          # overflow gets one summary message
   send_photo: true
   quiet_if_none: false     # send "No new matches today" message?
+
+details:
+  per_run: 40              # listing pages fetched per run for new matches; alerts wait for them (0 = off)
+  max_attempts: 3          # after this many failed fetches, alert with the card data only
 
 check:
   per_run: 10              # listing pages re-checked each run for sold / under offer (favourites first)

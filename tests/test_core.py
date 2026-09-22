@@ -182,7 +182,7 @@ class Recorder:
 
 def test_pipeline_second_run_sends_nothing(conn, tmp_path):
     cfg = Config(search=SEARCH, sources={"property24": {"locations": {"Stellenbosch": 459}}},
-                 notify={"quiet_if_none": True})
+                 notify={"quiet_if_none": True}, details={"per_run": 0})
     for expected in (2, 0):
         results = collect(cfg, conn, None, adapters={"property24": FakeAdapter}, debug_dir=tmp_path)
         rec = Recorder()
@@ -323,7 +323,7 @@ def test_check_updates_status(conn):
 
     class A:
         def __init__(self, http, src): pass
-        def listing_status(self, url): return "sold" if url.endswith("/1") else "active"
+        def details(self, url): return {"status": "sold" if url.endswith("/1") else "active"}
 
     cfg = Config(search=SEARCH, sources={"property24": {"province_id": 9}})
     changed = check(cfg, conn, None, db.to_check(conn), adapters={"property24": A})
@@ -479,3 +479,86 @@ def test_backfill_whole_search_reads_past_known(conn, tmp_path):
     cfg = Config(search=SEARCH, sources={"property24": {"province_id": 9}})
     backfill(cfg, conn, None, max_pages=7, adapters={"property24": A})
     assert calls == [(set(), 7, {})]  # no early stop, deeper, still province-wide
+
+
+
+# --- details (listing pages) ---------------------------------------------------
+
+class DetailSite:
+    """Fake adapter: details() from a dict of url -> fields, or raise."""
+    pages: dict = {}
+    calls: list = []
+
+    def __init__(self, http, src):
+        pass
+
+    def details(self, url):
+        DetailSite.calls.append(url)
+        v = DetailSite.pages[url]
+        if isinstance(v, Exception):
+            raise v
+        return v
+
+
+def detail_cfg(**search):
+    return Config(search=SEARCH.model_copy(update=search),
+                  sources={"property24": {"province_id": 9}, "privateproperty": {"province_id": 4}},
+                  details={"per_run": 10, "max_attempts": 2})
+
+
+def test_alerts_wait_for_details_then_filter(conn):
+    from housebot.pipeline import details
+    cfg = detail_cfg(require_features=["pool"], storeys_max=1)
+    put(conn, house("1"))
+    put(conn, house("2", suburb="Dalsig"))
+    assert db.pending_notifications(conn, hold_for_details=2) == []  # held: no details yet
+    DetailSite.calls = []
+    DetailSite.pages = {"https://x/property24/1": {"features": ["pool", "garden"], "storeys": 1, "rates": 1500},
+                        "https://x/property24/2": {"features": ["garden"], "storeys": 2}}
+    d = details(cfg, conn, None, adapters={"property24": DetailSite})
+    assert (d["fetched"], d["waiting"]) == (2, 0)
+    assert [p["id"] for p in db.pending_notifications(conn, hold_for_details=2)] == [1]  # 2: no pool, 2 storeys
+    details(cfg, conn, None, adapters={"property24": DetailSite})
+    assert len(DetailSite.calls) == 2  # each page fetched once
+
+
+def test_details_copied_from_same_house_on_other_site(conn):
+    from housebot.pipeline import details
+    put(conn, house("1", erf_m2=None, price=2_795_000))
+    put(conn, house("T1", "privateproperty", erf_m2=None, price=2_795_000))  # same house
+    DetailSite.calls = []
+    DetailSite.pages = {"https://x/property24/1": {"features": ["pool"], "rates": 1431}}
+    d = details(detail_cfg(), conn, None, adapters={"property24": DetailSite, "privateproperty": DetailSite})
+    assert (d["fetched"], d["copied"], len(DetailSite.calls)) == (1, 1, 1)
+    assert conn.execute("SELECT rates FROM listings WHERE source_listing_id='T1'").fetchone()[0] == 1431
+
+
+def test_throttled_details_stay_queued_then_release(conn):
+    from housebot.http import Blocked
+    from housebot.pipeline import details
+    cfg = detail_cfg()
+    put(conn, house("1"))
+    put(conn, house("2", suburb="Dalsig"))
+    DetailSite.pages = {"https://x/property24/1": Blocked("503"), "https://x/property24/2": Blocked("503")}
+    d = details(cfg, conn, None, adapters={"property24": DetailSite})
+    assert d["blocked"] == ["property24"] and d["waiting"] == 2  # site stopped after 1st; both still queued
+    assert db.pending_notifications(conn, hold_for_details=2) == []
+    details(cfg, conn, None, adapters={"property24": DetailSite})  # listing 1 fails a 2nd time
+    assert [p["id"] for p in db.pending_notifications(conn, hold_for_details=2)] == [1]  # released, card data
+
+
+def test_new_filters():
+    from datetime import date, timedelta
+    s = SEARCH.model_copy(update={"storeys_max": 1, "ensuite_min": 1, "require_features": ["flatlet"],
+                                  "exclude_features": ["Swimming Pool"], "max_listing_age_days": 30,
+                                  "garden_min_m2": 300})
+    ok = dict(storeys=1, ensuites=1, features=["flatlet"], listed_at=date.today().isoformat())
+    assert reasons(house(**ok), s) == []
+    assert reasons(house(**ok | {"storeys": 2}), s) == ["storeys 2 > 1"]
+    assert reasons(house(**ok | {"features": ["pool"]}), s) == ["no flatlet", "has Swimming Pool"]
+    assert reasons(house(**ok | {"features": [], "description": "with a FLATLET"}), s) == []
+    assert reasons(house(**ok | {"listed_at": (date.today() - timedelta(days=45)).isoformat()}), s) == \
+        ["listing age (days) 45 > 30"]
+    assert reasons(house(features=None), s) == []  # no details yet: unknown passes
+    # garden = erf - floor footprint: 600 - 400/1 = 200
+    assert reasons(house(**ok | {"erf_m2": 600, "floor_m2": 400, "storeys": 1}), s) == ["garden 200 < 300"]

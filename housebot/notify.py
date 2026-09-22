@@ -6,6 +6,7 @@ Console prints the messages instead; `housebot run --dry-run` uses it.
 """
 
 import html
+import json
 import logging
 import os
 import time
@@ -41,6 +42,14 @@ def format_listing(l: dict) -> str:
     lines = [head, " · ".join(facts)]
     if sizes:
         lines.append(" · ".join(sizes))
+    costs = [f"{w} {rand(l[k])}" for k, w in (("rates", "Rates"), ("levies", "Levies")) if l.get(k)]
+    if costs:
+        lines.append(" · ".join(costs) + " pm")
+    feats = l.get("features")
+    if isinstance(feats, str):
+        feats = json.loads(feats)
+    if feats:
+        lines.append(e(", ".join(f.replace("_", " ") for f in feats[:8])))
     if l.get("agency"):
         lines.append(f"Agency: {e(l['agency'])}")
     lines += [e(l["url"]), f'Reply to me: "fav {l["id"]}" or "hide {l["id"]}"']

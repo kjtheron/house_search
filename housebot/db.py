@@ -11,8 +11,6 @@ from datetime import datetime, timedelta
 from importlib import resources
 from pathlib import Path
 
-from dataclasses import fields
-
 from .models import Listing
 
 def now() -> str:
@@ -113,8 +111,57 @@ def mark_gone(conn, source: str, runs: int = 3) -> int:
                             "AND last_seen < ?", (source, row[0])).rowcount
 
 
-def pending_notifications(conn) -> list[dict]:
-    """Matching, active, not hidden, and this house not yet notified at this price (plan §6.4)."""
+DETAIL_COLS = ("floor_m2", "erf_m2", "garages", "parking", "storeys", "ensuites", "rates", "levies", "pets",
+               "features", "listed_at", "description", "status")
+
+
+def pending_details(conn, max_attempts: int, limit: int = -1) -> list[dict]:
+    """Matching listings still waiting for their listing page, oldest first (limit -1 = all)."""
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM listings WHERE matches = 1 AND status IN ('active', 'under_offer') "
+        "AND detail_fetched_at IS NULL AND detail_attempts < ? "
+        "AND id NOT IN (SELECT listing_id FROM hidden) ORDER BY first_seen, id LIMIT ?", (max_attempts, limit))]
+
+
+def detailed_mate(conn, listing: dict) -> dict | None:
+    """The same house on another site, if its details are already fetched (no request needed)."""
+    r = conn.execute(f"SELECT {', '.join(DETAIL_COLS)} FROM listings WHERE fingerprint = ? AND id <> ? "
+                     "AND detail_fetched_at IS NOT NULL LIMIT 1", (listing["fingerprint"], listing["id"])).fetchone()
+    return dict(r) if r else None
+
+
+def apply_details(conn, listing_id: int, d: dict, matches_fn) -> bool:
+    """Store fetched details (keeping card values the page lacks) and re-match. Returns new match flag."""
+    d = {k: v for k, v in d.items() if k in DETAIL_COLS and v is not None}
+    if isinstance(d.get("features"), list):
+        d["features"] = json.dumps(d["features"])
+    if "pets" in d:
+        d["pets"] = int(d["pets"])
+    with conn:
+        sets = "".join(f"{k}=?, " for k in d)
+        conn.execute(f"UPDATE listings SET {sets}detail_fetched_at=?, last_checked=? WHERE id=?",
+                     [*d.values(), now(), now(), listing_id])
+        row = conn.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
+        m = int(matches_fn(Listing.from_row(row)))
+        conn.execute("UPDATE listings SET matches=? WHERE id=?", (m, listing_id))
+    return bool(m)
+
+
+def detail_failed(conn, listing_id: int) -> None:
+    with conn:
+        conn.execute("UPDATE listings SET detail_attempts = detail_attempts + 1 WHERE id=?", (listing_id,))
+
+
+def details_waiting(conn, max_attempts: int) -> int:
+    return conn.execute("SELECT count(*) FROM listings WHERE matches = 1 AND status IN ('active', 'under_offer') "
+                        "AND detail_fetched_at IS NULL AND detail_attempts < ?", (max_attempts,)).fetchone()[0]
+
+
+def pending_notifications(conn, hold_for_details: int | None = None) -> list[dict]:
+    """Matching, active, not hidden, and this house not yet notified at this price (plan §6.4).
+
+    hold_for_details=N: skip listings still waiting for their details (unless N attempts failed).
+    """
     rows = conn.execute("""
         SELECT l.*,
           (SELECT price_notified FROM notifications n WHERE n.fingerprint = l.fingerprint
@@ -122,10 +169,11 @@ def pending_notifications(conn) -> list[dict]:
           EXISTS (SELECT 1 FROM notifications n WHERE n.fingerprint = l.fingerprint) AS notified_before
         FROM listings l
         WHERE l.matches = 1 AND l.status = 'active'
+          AND (? IS NULL OR l.detail_fetched_at IS NOT NULL OR l.detail_attempts >= ?)
           AND l.fingerprint NOT IN (SELECT h2.fingerprint FROM hidden h JOIN listings h2 ON h2.id = h.listing_id)
           AND NOT EXISTS (SELECT 1 FROM notifications n
                           WHERE n.fingerprint = l.fingerprint AND n.price_notified IS l.price)
-        ORDER BY l.first_seen, l.id""").fetchall()
+        ORDER BY l.first_seen, l.id""", (hold_for_details, hold_for_details)).fetchall()
     out, seen_fp = [], set()
     for r in rows:
         if r["fingerprint"] in seen_fp:  # same house on another portal in this batch
@@ -144,11 +192,10 @@ def record_notification(conn, listing: dict, msg_id: int | None) -> None:
 
 def rematch(conn, matches_fn) -> int:
     """Re-run matching on every stored listing (after the search config changed). Returns rows changed."""
-    names = [f.name for f in fields(Listing) if f.name != "raw"]
     changed = 0
     with conn:
-        for r in conn.execute(f"SELECT id, matches, {', '.join(names)} FROM listings").fetchall():
-            m = int(matches_fn(Listing(**{n: r[n] for n in names})))
+        for r in conn.execute("SELECT * FROM listings").fetchall():
+            m = int(matches_fn(Listing.from_row(r)))
             if m != r["matches"]:
                 conn.execute("UPDATE listings SET matches=? WHERE id=?", (m, r["id"]))
                 changed += 1
@@ -179,11 +226,6 @@ def to_check(conn, ids=None, favs=False, limit=20) -> list[dict]:
                "AND coalesce(last_checked, last_seen) < ? ORDER BY coalesce(last_checked, last_seen) LIMIT ?")
         args = [(datetime.now() - timedelta(days=1)).isoformat(timespec="seconds"), limit]
     return [dict(r) for r in conn.execute(sql, args)]
-
-
-def set_status(conn, listing_id: int, status: str) -> None:
-    with conn:
-        conn.execute("UPDATE listings SET status=?, last_checked=? WHERE id=?", (status, now(), listing_id))
 
 
 def town_names(conn) -> list[str]:

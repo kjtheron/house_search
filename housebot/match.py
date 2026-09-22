@@ -5,9 +5,10 @@ listing fails (handy for debugging); an empty list means it matches.
 """
 
 import re
+from datetime import date
 
 from .config import SearchConfig
-from .models import Listing
+from .models import Listing, feature_key
 
 
 def _key(name: str) -> str:
@@ -62,14 +63,24 @@ def reasons(l: Listing, s: SearchConfig) -> list[str]:
     between("garages", l.garages, s.garages_min, s.garages_max)
     between("floor", l.floor_m2, s.floor_min_m2, s.floor_max_m2)
     between("erf", l.erf_m2, s.erf_min_m2, s.erf_max_m2)
-    # ponytail: no site gives garden size; erf - floor is a rough stand-in (a double storey's floor
-    # area counts both levels, so it under-estimates). Unknown when either size is missing.
-    garden = l.erf_m2 - l.floor_m2 if l.erf_m2 and l.floor_m2 else None
-    between("garden", garden, s.garden_min_m2, None)
+    # ponytail: no site gives garden size; erf - floor footprint is a rough stand-in (footprint =
+    # floor / storeys, 1 storey if unknown). Unknown when either size is missing.
+    garden = l.erf_m2 - l.floor_m2 / (l.storeys or 1) if l.erf_m2 and l.floor_m2 else None
+    between("garden", garden and round(garden), s.garden_min_m2, None)
+    between("storeys", l.storeys, None, s.storeys_max)
+    between("ensuites", l.ensuites, s.ensuite_min, None)
+    age = (date.today() - date.fromisoformat(l.listed_at)).days if l.listed_at else None
+    between("listing age (days)", age, None, s.max_listing_age_days)
     if l.listing_kind == "auction" and not s.include_auctions:
         out.append("auction")
 
     text = f"{l.title or ''} {l.description or ''}".lower()
+    have = set(l.features or [])
+    for f in s.require_features:  # a listed feature, or the word in the description
+        if feature_key(f) not in have and f.lower() not in text:
+            if l.features is not None or not s.unknown_values_pass:
+                out.append(f"no {f}")
+    out += [f"has {f}" for f in s.exclude_features if feature_key(f) in have]
     out += [f"missing '{k}'" for k in s.include_keywords if k.lower() not in text]
     out += [f"has '{k}'" for k in s.exclude_keywords if k.lower() in text]
     return out

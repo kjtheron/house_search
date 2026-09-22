@@ -85,3 +85,26 @@ def test_town_id_lists():
     boland = privateproperty.parse_links((FIX / "privateproperty/region_boland.html").read_text(),
                                          "/for-sale/western-cape/boland")
     assert boland["Stellenbosch"] == ("stellenbosch", 712) and boland["Paarl"] == ("paarl", 715)
+
+
+def test_property24_detail_pages():
+    d = property24.parse_detail((FIX / "property24/listing_full_features.html").read_text())
+    assert (d["floor_m2"], d["erf_m2"], d["garages"], d["parking"], d["rates"]) == (280, 502, 2, 2, 2300)
+    assert d["pets"] is True and d["listed_at"] == "2026-09-22" and d["status"] == "active"
+    assert {"flatlet", "garden", "braai", "fibre", "alarm_system", "coastal"} <= set(d["features"])
+    assert d["description"].startswith("A Peaceful Coastal Lifestyle")
+    assert d["description"].count("A Peaceful Coastal Lifestyle") == 1  # full text only, not the preview too
+    d = property24.parse_detail((FIX / "property24/listing_under_offer.html").read_text())
+    assert (d["levies"], d["status"], d["floor_m2"], d["erf_m2"]) == (546, "under_offer", 130, 181)
+    assert {"pool", "study"} <= set(property24.parse_detail(
+        (FIX / "property24/listing_pool_study.html").read_text())["features"])
+
+
+def test_privateproperty_detail_pages():
+    d = privateproperty.parse_detail((FIX / "privateproperty/listing_under_offer.html").read_text())
+    assert (d["floor_m2"], d["erf_m2"], d["storeys"], d["garages"], d["parking"], d["rates"]) == (300, 999, 1, 2, 2, 1235)
+    assert d["status"] == "under_offer" and d["listed_at"] == "2026-07-29" and d["pets"] is True
+    assert d["description"].startswith("Family Living")
+    d = privateproperty.parse_detail((FIX / "privateproperty/listing_features.html").read_text())
+    assert (d["ensuites"], d["levies"], d["erf_m2"]) == (3, 1000, 923)
+    assert {"garden", "fireplace", "scullery", "pets"} <= set(d["features"])

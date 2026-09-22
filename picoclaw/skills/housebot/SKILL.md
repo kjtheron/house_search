@@ -24,6 +24,8 @@ Always pass --json and summarise the result briefly.
   alerts now cover the whole province)
 - "is 142 still available?" → bin/housebot check 142 --json   (one or two IDs: run directly)
 - "check my favourites" → bin/housebot check --favs --bg --json
+- "what features can I filter on" → bin/housebot features --json
+- "fetch the waiting details" → bin/housebot details --bg --json
 
 `--bg` runs slow commands in the background; the owner gets a Telegram message when done.
 Tell the owner it has started. Use --bg for --history, backfill, and checks of more than 2 listings.

@@ -2,6 +2,7 @@
 (prices, sizes, property type) shared by the adapters.
 """
 
+import json
 import re
 from dataclasses import asdict, dataclass, field
 
@@ -28,18 +29,51 @@ class Listing:
     agent_name: str | None = None
     description: str | None = None
     photo_url: str | None = None
+    # From the listing's own page (details); None until fetched.
+    parking: int | None = None            # open parking, separate from garages
+    storeys: int | None = None
+    ensuites: int | None = None
+    rates: int | None = None              # rates and taxes, R per month
+    levies: int | None = None             # R per month
+    pets: bool | None = None
+    features: list[str] | None = None     # normalized: pool, garden, flatlet, study, ...
+    listed_at: str | None = None          # YYYY-MM-DD, the site's listing date
     raw: dict = field(default_factory=dict)
 
     def as_row(self) -> dict:
         d = asdict(self)
         d.pop("raw")
+        d["features"] = json.dumps(d["features"]) if d["features"] is not None else None
         return d
+
+    @classmethod
+    def from_row(cls, row) -> "Listing":
+        """Rebuild from a DB row (sqlite3.Row or dict) that has the listing columns."""
+        keys = row.keys()
+        d = {f: row[f] for f in cls.__dataclass_fields__ if f != "raw" and f in keys}
+        if isinstance(d.get("features"), str):
+            d["features"] = json.loads(d["features"])
+        if d.get("pets") is not None:
+            d["pets"] = bool(d["pets"])
+        return cls(**d)
 
 
 # Shared parsing helpers for adapters.
 
 SOLD = ".p24_soldBanner, .listing-banner--sold"
 UNDER_OFFER = ".p24_underOfferBanner, .listing-banner--offer-pending"
+
+
+# Different sites, same thing: map to one feature name for config filters.
+FEATURE_SYNONYMS = {"office": "study", "pet_friendly": "pets", "pets_allowed": "pets", "fibre_internet": "fibre",
+                    "swimming_pool": "pool", "built_in_braai": "braai", "braai_room": "braai",
+                    "en_suite": "ensuite", "granny_flat": "flatlet", "cottage": "flatlet"}
+
+
+def feature_key(name: str) -> str:
+    """ "Pet Friendly" -> "pets", "Built in Braai" -> "braai", "Walk in closet" -> "walk_in_closet"."""
+    k = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    return FEATURE_SYNONYMS.get(k, k)
 
 
 def badge_status(node) -> str:

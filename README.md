@@ -32,6 +32,10 @@ only a few pages a day. `towns` filters what you get alerted about. `housebot to
 `towns` and the town-mode `locations` in step, looking up each site's ID for you. Each run also re-checks a few favourites and matches (`check.per_run`) and tells you if a
 favourite is sold or under offer.
 
+New matches get their listing page fetched once (sizes, storeys, rates, levies, features, listing date)
+before you're alerted, so filters like `storeys_max` and `require_features` apply. Up to `details.per_run`
+pages per run; a backlog (e.g. after a backfill) drains over the next runs.
+
 `--dry-run` prints the Telegram messages instead of sending them and records nothing as sent, so you can repeat it.
 Drop `--dry-run` to send for real. Delete `data/` to start from an empty database.
 
@@ -54,6 +58,8 @@ uv run housebot backfill --pages 30                  # one-off: go ~30 pages fur
 uv run housebot towns rm Paarl                       # stop, and delete Paarl's listings (favourites kept)
 uv run housebot check 142                            # still for sale? (sold / under offer / gone)
 uv run housebot check --favs --bg                    # --bg: run in background, Telegram message when done
+uv run housebot details --bg                         # fetch waiting listing pages now (normally 40 per run)
+uv run housebot features                             # feature names seen, for require/exclude_features
 ```
 
 Add `--json` to any command for machine-readable output. `uv run housebot --help` lists everything.

@@ -11,8 +11,8 @@ from urllib.parse import quote, urljoin
 from selectolax.parser import HTMLParser, Node
 
 from ..config import SearchConfig
-from ..models import Listing, badge_status, property_type, to_int
-from .base import TYPE_SLUGS, BaseAdapter, Page, finish_card, parse_cards, slug, text
+from ..models import Listing, badge_status, feature_key, property_type, to_int
+from .base import TYPE_SLUGS, BaseAdapter, Page, finish_card, parse_cards, parse_date, slug, text
 
 BASE = "https://www.property24.com"
 FEATURES = {"Bedrooms": "beds", "Bathrooms": "baths", "Parking Spaces": "garages", "Garages": "garages",
@@ -59,6 +59,46 @@ def _photo(tile: Node) -> str | None:
     return src if src and src.startswith("http") else None
 
 
+# Overview rows whose *values* are feature names ("Security: Security Gate, Alarm System").
+VALUE_FEATURES = {"Security", "Special Features", "Special Feature", "Lifestyle", "Rooms", "Braai Room",
+                  "Internet Access", "Outbuilding"}
+
+
+def parse_detail(html: str) -> dict:
+    """Listing fields from a listing page's "Property Overview" rows and feature icons."""
+    t = HTMLParser(html)
+    rows: dict[str, str] = {}
+    features: set[str] = set()
+    for row in t.css(".p24_propertyOverviewRow"):
+        k, v = row.css_first(".p24_propertyOverviewKey"), row.css_first(".p24_propertyOverviewResult")
+        if not (k and v):
+            continue
+        key, val = k.text(strip=True), v.text(separator=" ", strip=True).strip()
+        rows.setdefault(key, val)
+        if key in VALUE_FEATURES and not re.fullmatch(r"[\d\s]+", val):
+            features |= {feature_key(x) for x in re.split(r"[,/]", val) if x.strip()}
+        elif key in VALUE_FEATURES:  # "Braai Room: 1" -> braai
+            features.add(feature_key(key))
+        elif val.lower() == "yes" or key in ("Office", "Flatlet", "Pool", "Garden", "Study"):
+            features.add(feature_key(key))
+    for f in t.css(".p24_listingFeatures"):  # icon row: "Pool", "Study", "Garages: 2"
+        label = f.text(strip=True)
+        if ":" not in label:
+            features.add(feature_key(label))
+    # The page holds a short preview and the full text; take the full one.
+    desc = t.css_first(".js_readMoreText .p24_expandedText") or t.css_first(".js_readMoreText")
+    pets = rows.get("Pets Allowed")
+    return {
+        "floor_m2": to_int(rows.get("Floor Size")), "erf_m2": to_int(rows.get("Erf Size")),
+        "garages": to_int(rows.get("Garage")), "parking": to_int(rows.get("Parking")),
+        "rates": to_int(rows.get("Rates and Taxes")), "levies": to_int(rows.get("Levies")),
+        "pets": None if pets is None else pets.lower() == "yes",
+        "features": sorted(features), "listed_at": parse_date(rows.get("Listing Date")),
+        "description": desc.text(separator=" ", strip=True).strip() if desc else None,
+        "status": badge_status(t.css_first(".p24_gallery")),
+    }
+
+
 def parse_towns(html: str, province: str) -> dict[str, int]:
     """Town name -> location ID from the /for-sale/all-cities/<province>/<id> page."""
     out = {}
@@ -83,11 +123,9 @@ class Property24(BaseAdapter):
                                          ("bd", cfg.beds_min), ("bth", cfg.baths_min)) if v]
         return BASE + path + f"?sp={quote('&'.join(sp + ['so=Newest']))}"
 
-    def listing_status(self, url: str) -> str:
+    def details(self, url: str) -> dict:
         r = self.http.get(url)
-        if r.status_code == 404:
-            return "gone"
-        return badge_status(HTMLParser(r.text).css_first(".p24_gallery"))
+        return {"status": "gone"} if r.status_code == 404 else parse_detail(r.text)
 
     def town_ids(self, province: str) -> dict[str, int]:
         return parse_towns(self.http.get(f"{BASE}/for-sale/all-cities/{province}/{self.src.province_id}").text,

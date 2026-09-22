@@ -378,5 +378,35 @@ def check(listing_ids: Annotated[Optional[list[int]], typer.Argument(help="Listi
     _out({"checked": len(todo), "changed": out}, as_json, lambda d: typer.echo(text))
 
 
+
+@app.command()
+def details(limit: Annotated[int, typer.Option(help="Listing pages to fetch (copies from the same house on "
+                                               "another site are free).")] = 40,
+            bg: Bg = False, done: Done = False, as_json: Json = False):
+    """Fetch details (sizes, rates, features, listing date) for matches still waiting. Each page once."""
+    if bg:
+        _spawn(["details", "--limit", str(limit)])
+        return _started("details fetch", as_json)
+    cfg = _cfg()
+    with pipeline.session(cfg) as (conn, http):
+        d = pipeline.details(cfg, conn, http, limit)
+    text = pipeline.details_line(d).capitalize()
+    if done:
+        _telegram("✅ " + text)
+    _out(d, as_json, lambda _: typer.echo(text))
+
+
+@app.command()
+def features(as_json: Json = False):
+    """Feature names seen on fetched listings, most common first (for require/exclude_features)."""
+    counts: dict[str, int] = {}
+    for (f,) in _conn().execute("SELECT features FROM listings WHERE features IS NOT NULL"):
+        for name in json.loads(f):
+            counts[name] = counts.get(name, 0) + 1
+    rows = sorted(counts.items(), key=lambda kv: -kv[1])
+    _out(dict(rows), as_json, lambda _: typer.echo("\n".join(f"{n:>5}  {k}" for k, n in rows)
+                                                   or "No details fetched yet: run `housebot details`."))
+
+
 if __name__ == "__main__":
     app()

@@ -39,7 +39,12 @@ class SearchConfig(Strict):
     floor_max_m2: int | None = None
     erf_min_m2: int | None = None
     erf_max_m2: int | None = None
-    garden_min_m2: int | None = None  # estimated as erf - floor size (see match.py)
+    garden_min_m2: int | None = None  # estimated as erf - floor footprint (see match.py)
+    storeys_max: int | None = None
+    ensuite_min: int | None = None
+    require_features: list[str] = []  # e.g. [garden, flatlet]; see `housebot features`
+    exclude_features: list[str] = []
+    max_listing_age_days: int | None = None
     include_keywords: list[str] = []
     exclude_keywords: list[str] = []
     include_auctions: bool = False
@@ -72,6 +77,11 @@ class NotifyConfig(Strict):
     quiet_if_none: bool = False
 
 
+class DetailsConfig(Strict):
+    per_run: int = Field(40, ge=0)       # listing pages fetched per run; 0 = off (no alert hold)
+    max_attempts: int = Field(3, ge=1)   # after this many failures, alert with card data only
+
+
 class CheckConfig(Strict):
     per_run: int = Field(10, ge=0)  # listing pages re-checked per daily run (favourites first)
 
@@ -85,6 +95,7 @@ class Config(Strict):
     sources: dict[str, SourceConfig] = {}
     http: HttpConfig = HttpConfig()
     notify: NotifyConfig = NotifyConfig()
+    details: DetailsConfig = DetailsConfig()
     check: CheckConfig = CheckConfig()
     paths: PathsConfig = PathsConfig()
 

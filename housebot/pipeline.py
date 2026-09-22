@@ -5,6 +5,7 @@ the source ok / degraded / failed (saving the HTML of a broken page to data/debu
 notify(): send pending alerts, degraded-source warnings, and a short run summary.
 check(): open listing pages to confirm a house is still for sale (sold / under offer / gone).
 backfill(): read every page of one town once, for its full history.
+details(): open each new matching listing's own page once for the fields cards lack; alerts wait.
 """
 
 import logging
@@ -110,9 +111,67 @@ def collect(cfg: Config, conn, http, source: str | None = None, adapters=ADAPTER
     return results
 
 
-def notify(cfg: Config, conn, notifier, results: list[dict], record: bool = True) -> int:
+def _fetch_pages(cfg: Config, http, listings, adapters, blocked: list):
+    """Yield (listing, details or None) for each listing page. A throttled site is dropped for the
+    rest of the run (its name appended to `blocked`); other errors skip just that listing."""
+    sites = {name: adapters[name](http, src) for name, src in cfg.sources.items() if name in adapters}
+    for l in listings:
+        if l["source"] not in sites:
+            continue
+        try:
+            yield l, sites[l["source"]].details(l["url"])
+        except Blocked as e:
+            log.warning("%s listing pages stopped for this run: %s", l["source"], e)
+            blocked.append(l["source"])
+            del sites[l["source"]]
+            yield l, None
+        except Exception as e:
+            log.warning("listing page #%s failed: %s", l["id"], e)
+            yield l, None
+
+
+def details(cfg: Config, conn, http, limit: int | None = None, adapters=ADAPTERS) -> dict:
+    """Fetch listing pages for matches still waiting for details, oldest first, once each.
+
+    Same house already detailed on the other site -> copied, no request. A throttled site stops
+    at once; its listings stay queued for the next run (a failure counts toward max_attempts).
+    """
+    limit = cfg.details.per_run if limit is None else limit
+    out = {"fetched": 0, "copied": 0, "failed": 0, "blocked": []}
+    match_fn = lambda l: matches(l, cfg.search)
+
+    def todo():  # lazy, so a house fetched a moment ago on one site is copied to the other
+        for l in db.pending_details(conn, cfg.details.max_attempts):
+            if out["fetched"] + out["failed"] >= limit:
+                return
+            mate = db.detailed_mate(conn, l)
+            if mate:
+                db.apply_details(conn, l["id"], mate, match_fn)
+                out["copied"] += 1
+            else:
+                yield l
+
+    for l, d in _fetch_pages(cfg, http, todo(), adapters, out["blocked"]):
+        if d is None:
+            db.detail_failed(conn, l["id"])
+            out["failed"] += 1
+        else:
+            db.apply_details(conn, l["id"], d, match_fn)
+            out["fetched"] += 1
+    out["waiting"] = db.details_waiting(conn, cfg.details.max_attempts)
+    return out
+
+
+def details_line(d: dict) -> str:
+    return (f"details: {d['fetched']} fetched, {d['copied']} copied, {d['failed']} failed, {d['waiting']} waiting"
+            + (f" ({', '.join(d['blocked'])} throttled)" if d["blocked"] else ""))
+
+
+def notify(cfg: Config, conn, notifier, results: list[dict], record: bool = True,
+           detail_stats: dict | None = None) -> int:
     """Send pending matches, then alerts and a run summary. Returns listings sent."""
-    pending = db.pending_notifications(conn)
+    hold = cfg.details.max_attempts if cfg.details.per_run else None
+    pending = db.pending_notifications(conn, hold_for_details=hold)
     sent = 0
     for l in pending[: cfg.notify.max_per_run]:
         try:
@@ -132,6 +191,8 @@ def notify(cfg: Config, conn, notifier, results: list[dict], record: bool = True
     if sent or not cfg.notify.quiet_if_none:
         lines = [f"{r['source']}: {r['seen']} seen, {r['new']} new, {r['price_changes']} price changes"
                  for r in results]
+        if detail_stats:
+            lines.append(details_line(detail_stats))
         head = f"✅ Daily run: {sent} match{'es' * (sent != 1)} sent." if sent else "No new matches today."
         notifier.send("\n".join([head, *lines]))
     return sent
@@ -142,24 +203,14 @@ STATUS_WORDS = {"active": "🟢 for sale again", "under_offer": "🟡 UNDER OFFE
 
 
 def check(cfg: Config, conn, http, listings: list[dict], adapters=ADAPTERS) -> list[dict]:
-    """Open each listing page and store its sale status. Returns the listings whose status changed."""
+    """Open each listing page (storing its details too) and return the listings whose status changed."""
     changed = []
-    sites = {name: adapters[name](http, src) for name, src in cfg.sources.items() if name in adapters}
-    for l in listings:
-        if l["source"] not in sites:
+    for l, d in _fetch_pages(cfg, http, listings, adapters, []):
+        if d is None:
             continue
-        try:
-            status = sites[l["source"]].listing_status(l["url"])
-        except Blocked as e:
-            log.warning("%s checks stopped for this run: %s", l["source"], e)
-            del sites[l["source"]]
-            continue
-        except Exception as e:
-            log.warning("check #%s failed: %s", l["id"], e)
-            continue
-        db.set_status(conn, l["id"], status)
-        if status != l["status"]:
-            changed.append(l | {"old_status": l["status"], "status": status})
+        db.apply_details(conn, l["id"], d, lambda x: matches(x, cfg.search))
+        if d["status"] != l["status"]:
+            changed.append(l | {"old_status": l["status"], "status": d["status"]})
     return changed
 
 
@@ -181,7 +232,8 @@ def run(cfg: Config, notifier, source: str | None = None, record: bool = True) -
         # them are never seen again, so re-match everything first (fast, no network).
         db.rematch(conn, lambda l: matches(l, cfg.search))
         results = collect(cfg, conn, http, source)
-        notify(cfg, conn, notifier, results, record)
+        stats = details(cfg, conn, http) if cfg.details.per_run else None
+        notify(cfg, conn, notifier, results, record, stats)
         if cfg.check.per_run:
             favs = {r[0] for r in conn.execute("SELECT listing_id FROM favourites")}
             todo = db.to_check(conn, favs=True, limit=cfg.check.per_run)

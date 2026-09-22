@@ -9,6 +9,7 @@ import logging
 import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from selectolax.parser import HTMLParser, Node
 
@@ -44,7 +45,7 @@ class BaseAdapter:
 
     def search_url(self, cfg: SearchConfig, town: str | None, loc_id: int, ptype: str, page: int) -> str: ...
     def parse(self, html: str) -> Page: ...
-    def listing_status(self, url: str) -> str: ...   # fetch one listing page: active|under_offer|sold|gone
+    def details(self, url: str) -> dict: ...  # fetch one listing page: Listing fields + "status" (gone if removed)
     def town_ids(self, province: str) -> dict[str, int]: ...
 
     def pages(self, cfg: SearchConfig, known: set[str] = frozenset()) -> Iterator[Page]:
@@ -76,12 +77,14 @@ class BaseAdapter:
 
 # --- card parsing helpers -------------------------------------------------------
 
-def parse_cards(html: str, selector: str, card: Callable[[Node], Listing], source: str) -> Page:
-    """Run `card` on every node matching `selector`; one bad card is counted, never fatal."""
+def parse_cards(html: str, selector: str, card: Callable[[Node], Listing | None], source: str) -> Page:
+    """Run `card` on every node matching `selector`; None = not a listing (an ad); a bad card is counted."""
     page = Page(html=html)
     for node in HTMLParser(html).css(selector):
         try:
-            page.listings.append(card(node))
+            l = card(node)
+            if l is not None:
+                page.listings.append(l)
         except Exception as e:
             log.warning("%s: skipped card: %s", source, e)
             page.errors += 1
@@ -106,6 +109,16 @@ def finish_card(l: Listing, node: Node, features: dict[str, str], feature_sel: s
 def text(node: Node, sel: str) -> str | None:
     n = node.css_first(sel)
     return (n.text(strip=True) or None) if n else None
+
+
+def parse_date(text: str | None) -> str | None:
+    """ "22 September 2026" / "22 Sep 2026" -> "2026-09-22"."""
+    for fmt in ("%d %B %Y", "%d %b %Y"):
+        try:
+            return datetime.strptime((text or "").strip(), fmt).date().isoformat()
+        except ValueError:
+            pass
+    return None
 
 
 def slug(s: str) -> str:
