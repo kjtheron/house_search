@@ -60,6 +60,7 @@ uv run housebot check 142                            # still for sale? (sold / u
 uv run housebot check --favs --bg                    # --bg: run in background, Telegram message when done
 uv run housebot details --bg                         # fetch waiting listing pages now (normally 40 per run)
 uv run housebot features                             # feature names seen, for require/exclude_features
+uv run housebot rematch                              # after editing config.yaml: re-check stored listings now
 ```
 
 Add `--json` to any command for machine-readable output. `uv run housebot --help` lists everything.

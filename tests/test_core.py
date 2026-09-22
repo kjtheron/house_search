@@ -615,3 +615,19 @@ def test_details_reveal_twin_missed_on_cards(conn):
     db.apply_details(conn, 2, {"rates": 1431}, lambda l: True)
     assert len({r[0] for r in conn.execute("SELECT fingerprint FROM listings")}) == 1
     assert len(db.pending_notifications(conn)) == 1
+
+
+def test_rematch_command(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+    from housebot import cli
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(f"search:\n  towns: [Stellenbosch]\n  beds_min: 3\nsources:\n  property24:\n    province_id: 9\n"
+                   f"paths:\n  db: {tmp_path / 'h.db'}\n")
+    monkeypatch.setenv("HOUSEBOT_CONFIG", str(cfg))
+    c = db.connect(tmp_path / "h.db")
+    db.upsert(c, house(beds=2), False)
+    r = CliRunner().invoke(cli.app, ["rematch", "--json"])
+    assert r.exit_code == 0 and '"changed": 0' in r.output
+    cfg.write_text(cfg.read_text().replace("beds_min: 3", "beds_min: 2"))
+    r = CliRunner().invoke(cli.app, ["rematch"])
+    assert "1 listings changed. 1 match now; 1 wait for details" in r.output

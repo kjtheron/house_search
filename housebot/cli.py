@@ -2,7 +2,7 @@
 
 This is the only interface to the bot. You use it by hand, systemd runs `housebot run`
 daily, and PicoClaw calls the other commands (always with --json) when you chat on Telegram.
-Only run, fav, hide/unhide, towns, backfill and check write to the database; towns also edits
+Only run, fav, hide/unhide, towns, backfill, check, details and rematch write to the database; towns also edits
 the `towns:` line of config.yaml. No command accepts raw SQL.
 """
 
@@ -397,6 +397,19 @@ def details(limit: Annotated[int, typer.Option(help="Listing pages to fetch (cop
     if done:
         _telegram("✅ " + text)
     _out(d, as_json, lambda _: typer.echo(text))
+
+
+@app.command()
+def rematch(as_json: Json = False):
+    """Re-check stored listings against config.yaml now (no network), so search shows a config edit."""
+    cfg = _cfg()
+    conn = db.connect(cfg.paths.db)
+    changed = db.rematch(conn, lambda l: matches(l, cfg.search))
+    d = {"changed": changed, "matching": conn.execute("SELECT count(*) FROM listings WHERE matches = 1").fetchone()[0],
+         "details_waiting": db.details_waiting(conn, cfg.details.max_attempts)}
+    _out(d, as_json, lambda d: typer.echo(
+        f"{d['changed']} listings changed. {d['matching']} match now; {d['details_waiting']} wait for details "
+        "(fetched next run, or `housebot details`)."))
 
 
 @app.command()
