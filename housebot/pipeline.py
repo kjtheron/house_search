@@ -18,7 +18,6 @@ from pathlib import Path
 from . import db
 from .adapters import ADAPTERS
 from .config import Config
-from .fingerprint import fingerprint
 from .http import Blocked, PoliteClient
 from .match import matches
 from .notify import format_listing
@@ -87,7 +86,7 @@ def collect(cfg: Config, conn, http, source: str | None = None, adapters=ADAPTER
             res["errors"] += page.errors
             for l in page.listings:
                 res["seen"] += 1
-                change = db.upsert(conn, l, matches(l, cfg.search), fingerprint(l))
+                change = db.upsert(conn, l, matches(l, cfg.search))
                 res["new"] += change == "new"
                 res["price_changes"] += change == "price_change"
 
@@ -231,6 +230,8 @@ def run(cfg: Config, notifier, source: str | None = None, record: bool = True) -
         # Config may have changed since stored listings were matched; early stop means most of
         # them are never seen again, so re-match everything first (fast, no network).
         db.rematch(conn, lambda l: matches(l, cfg.search))
+        if db.needs_relink(conn):  # one-off repair of keys stored by older versions
+            db.relink(conn)
         results = collect(cfg, conn, http, source)
         stats = details(cfg, conn, http) if cfg.details.per_run else None
         notify(cfg, conn, notifier, results, record, stats)

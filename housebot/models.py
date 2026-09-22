@@ -51,8 +51,8 @@ class Listing:
         """Rebuild from a DB row (sqlite3.Row or dict) that has the listing columns."""
         keys = row.keys()
         d = {f: row[f] for f in cls.__dataclass_fields__ if f != "raw" and f in keys}
-        if isinstance(d.get("features"), str):
-            d["features"] = json.loads(d["features"])
+        if isinstance(d.get("features"), str):  # normalized on read, so old rows pick up new synonyms
+            d["features"] = sorted({feature_key(f) for f in json.loads(d["features"])})
         if d.get("pets") is not None:
             d["pets"] = bool(d["pets"])
         return cls(**d)
@@ -65,9 +65,16 @@ UNDER_OFFER = ".p24_underOfferBanner, .listing-banner--offer-pending"
 
 
 # Different sites, same thing: map to one feature name for config filters.
-FEATURE_SYNONYMS = {"office": "study", "pet_friendly": "pets", "pets_allowed": "pets", "fibre_internet": "fibre",
-                    "swimming_pool": "pool", "built_in_braai": "braai", "braai_room": "braai",
-                    "en_suite": "ensuite", "granny_flat": "flatlet", "cottage": "flatlet"}
+FEATURE_SYNONYMS = {
+    "office": "study", "pet_friendly": "pets", "pets_allowed": "pets", "fibre_internet": "fibre",
+    "swimming_pool": "pool", "built_in_braai": "braai", "braai_room": "braai", "en_suite": "ensuite",
+    "granny_flat": "flatlet", "cottage": "flatlet", "flatlets": "flatlet",
+    "alarm_system": "alarm", "air_conditioner": "aircon", "air_conditioning": "aircon",
+    "totally_fenced": "fenced", "partially_fenced": "fenced", "totally_walled": "walled",
+    "wheelchair_accessible": "wheelchair", "wheel_chair_friendly": "wheelchair", "wheelchair_friendly": "wheelchair",
+    "solar_panels": "solar", "solar_geyser": "solar", "solar_panels_solar_geyser": "solar",
+    "backup_battery_inverter": "inverter", "paveway": "paving",
+}
 
 
 def feature_key(name: str) -> str:

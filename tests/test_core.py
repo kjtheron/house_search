@@ -8,7 +8,6 @@ import pytest
 from housebot import db
 from housebot.adapters.base import Page
 from housebot.config import Config, ConfigError, HttpConfig, SearchConfig, load
-from housebot.fingerprint import fingerprint
 from housebot.http import PoliteClient
 from housebot.match import reasons
 from housebot.models import Listing, property_type, to_int
@@ -71,10 +70,15 @@ def test_unknown_values_fail_when_configured():
 
 # --- fingerprint ----------------------------------------------------------------
 
-def test_fingerprint_same_house_across_portals():
-    assert fingerprint(house(erf_m2=603)) == fingerprint(house("T9", "privateproperty", erf_m2=598))
-    assert fingerprint(house()) != fingerprint(house(beds=4))
-    assert fingerprint(house(erf_m2=None)) == "property24:1"  # no size -> per-source key
+def test_same_house_across_sites_by_size():
+    from housebot import db as d
+    c = d.connect(":memory:")
+    put(c, house(erf_m2=603))
+    put(c, house("T9", "privateproperty", erf_m2=598, price=3_100_000))  # sizes within 2%
+    put(c, house("T10", "privateproperty", beds=4, price=9))              # other house
+    put(c, house("2", erf_m2=603))                                        # same site: never merged
+    assert [r[0] for r in c.execute("SELECT fingerprint FROM listings ORDER BY id")] == \
+        ["property24:1", "property24:1", "privateproperty:T10", "property24:2"]
 
 
 # --- database -------------------------------------------------------------------
@@ -85,7 +89,7 @@ def conn():
 
 
 def put(conn, l: Listing, ts=None):
-    return db.upsert(conn, l, not reasons(l, SEARCH), fingerprint(l), ts)
+    return db.upsert(conn, l, not reasons(l, SEARCH), ts)
 
 
 def test_upsert_states(conn):
@@ -318,8 +322,8 @@ def test_rematch_after_town_change(conn):
 def test_check_updates_status(conn):
     from housebot.pipeline import check
     put(conn, house(), ts="2026-01-01T00:00:00")
-    put(conn, house("2"), ts="2026-01-01T00:00:00")
-    put(conn, house("3"))  # seen on a search page just now: no need to open it
+    put(conn, house("2", suburb="Dalsig"), ts="2026-01-01T00:00:00")
+    put(conn, house("3", suburb="Uniepark"))  # seen on a search page just now: no need to open it
 
     class A:
         def __init__(self, http, src): pass
@@ -562,3 +566,52 @@ def test_new_filters():
     assert reasons(house(features=None), s) == []  # no details yet: unknown passes
     # garden = erf - floor footprint: 600 - 400/1 = 200
     assert reasons(house(**ok | {"erf_m2": 600, "floor_m2": 400, "storeys": 1}), s) == ["garden 200 < 300"]
+
+
+def test_search_detailed_only(conn):
+    put(conn, house("1"))
+    put(conn, house("2", suburb="Dalsig"))
+    db.apply_details(conn, 2, {"rates": 900}, lambda l: True)
+    assert [r["id"] for r in db.search(conn, detailed=True)] == [2]
+
+
+def test_same_house_with_different_spelling_and_relink(conn):
+    put(conn, house("390", suburb="Bot River", town="Bot River", price=2_650_000))
+    conn.execute("UPDATE listings SET fingerprint='old-a'")
+    put(conn, house("T385", "privateproperty", suburb="Botrivier", town="Botrivier", price=2_650_000))
+    fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
+    assert fps == ["old-a", "old-a"]  # linked on insert despite the spelling
+    conn.execute("UPDATE listings SET fingerprint='privateproperty:T385' WHERE id=2")  # not linked, as before the fix
+    assert db.relink(conn) == 1
+    assert len({r[0] for r in conn.execute("SELECT fingerprint FROM listings")}) == 1
+    assert [(r["id"], r["also_on"]) for r in db.search(conn)] == [(2, ["property24"])]  # one row per house
+
+
+def test_feature_synonyms_apply_to_stored_rows():
+    from housebot.models import Listing
+    l = Listing.from_row({"source": "p", "source_listing_id": "1", "url": "u",
+                          "features": '["alarm_system", "flatlets", "Solar Panels Solar Geyser"]'})
+    assert l.features == ["alarm", "flatlet", "solar"]
+
+
+def test_relink_splits_old_hash_merges_on_one_site(conn):
+    put(conn, house("1", price=2_730_000))
+    put(conn, house("2", price=2_625_000))  # other plot, same size, same site
+    conn.execute("UPDATE listings SET fingerprint = ?", ("a" * 40,))  # as the old size-hash stored it
+    assert db.needs_relink(conn)
+    assert db.relink(conn) == 2
+    assert not db.needs_relink(conn)
+    assert [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")] == \
+        ["property24:1", "property24:2"]
+    assert db.relink(conn) == 0  # stable
+
+
+def test_details_reveal_twin_missed_on_cards(conn):
+    # Cards: no sizes, prices differ -> not linked. Details: same rates -> linked, one alert.
+    put(conn, house("1", erf_m2=None, price=2_650_000))
+    put(conn, house("T1", "privateproperty", erf_m2=None, price=2_600_000))
+    assert len({r[0] for r in conn.execute("SELECT fingerprint FROM listings")}) == 2
+    db.apply_details(conn, 1, {"rates": 1431, "erf_m2": 948}, lambda l: True)
+    db.apply_details(conn, 2, {"rates": 1431}, lambda l: True)
+    assert len({r[0] for r in conn.execute("SELECT fingerprint FROM listings")}) == 1
+    assert len(db.pending_notifications(conn)) == 1

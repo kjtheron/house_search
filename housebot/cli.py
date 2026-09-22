@@ -22,6 +22,7 @@ from . import config as config_mod
 from . import db, pipeline
 from . import towns as towns_mod
 from .match import matches
+from .models import feature_key
 from .notify import Console, Telegram, rand
 
 app = typer.Typer(help="Western Cape house-listing bot.", no_args_is_help=True, add_completion=False,
@@ -107,7 +108,8 @@ def _line(l: dict) -> str:
     if l.get("status") not in (None, "active"):
         flags += f" [{l['status'].replace('_', ' ').upper()}]"
     where = ", ".join(x for x in (l.get("town"), l.get("suburb")) if x)
-    return f"#{l['id']:<5} {rand(l['price']):>13}  {where}  {beds} {size} {flags}\n       {l['url']}"
+    also = f"  (+ {', '.join(l['also_on'])})" if l.get("also_on") else ""
+    return f"#{l['id']:<5} {rand(l['price']):>13}  {where}  {beds} {size} {flags}{also}\n       {l['url']}"
 
 
 @app.command()
@@ -128,10 +130,11 @@ def search(town: Optional[str] = None, suburb: Optional[str] = None,
            text: Annotated[Optional[str], typer.Option(help="Word in title or description.")] = None,
            favs: bool = False, include_gone: bool = False,
            matching: Annotated[bool, typer.Option(help="Only listings that pass config.yaml.")] = False,
+           detailed: Annotated[bool, typer.Option(help="Only listings whose own page was fetched.")] = False,
            limit: int = 20, as_json: Json = False):
     """Query stored listings."""
     rows = db.search(_conn(), town, suburb, price_max, beds_min, _since(since), text, favs, include_gone,
-                     matching, limit)
+                     matching, detailed, limit)
     _out(rows, as_json, lambda rs: typer.echo("\n".join(map(_line, rs)) or "No listings."))
 
 
@@ -401,7 +404,7 @@ def features(as_json: Json = False):
     """Feature names seen on fetched listings, most common first (for require/exclude_features)."""
     counts: dict[str, int] = {}
     for (f,) in _conn().execute("SELECT features FROM listings WHERE features IS NOT NULL"):
-        for name in json.loads(f):
+        for name in {feature_key(x) for x in json.loads(f)}:
             counts[name] = counts.get(name, 0) + 1
     rows = sorted(counts.items(), key=lambda kv: -kv[1])
     _out(dict(rows), as_json, lambda _: typer.echo("\n".join(f"{n:>5}  {k}" for k, n in rows)

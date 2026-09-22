@@ -6,11 +6,14 @@ Migrations are the numbered .sql files in housebot/migrations/, tracked by PRAGM
 """
 
 import json
+import re
 import sqlite3
 from datetime import datetime, timedelta
+from difflib import SequenceMatcher
 from importlib import resources
 from pathlib import Path
 
+from .match import _key as _place_key
 from .models import Listing
 
 def now() -> str:
@@ -43,24 +46,31 @@ def migrate(conn: sqlite3.Connection) -> None:
 
 # --- pipeline ---------------------------------------------------------------
 
-def upsert(conn, l: Listing, matches: bool, fp: str, ts: str | None = None) -> str:
-    """Insert or update one listing. Returns new | price_change | relisted | unchanged."""
+def own_key(l: Listing) -> str:
+    return f"{l.source}:{l.source_listing_id}"
+
+
+def upsert(conn, l: Listing, matches: bool, ts: str | None = None) -> str:
+    """Insert or update one listing. Returns new | price_change | relisted | unchanged.
+
+    `fingerprint` groups the same house across sites: a new listing joins its twin on the other
+    site (same_house) or gets its own key. It is never changed by later updates.
+    """
     ts = ts or now()
-    row = l.as_row() | {"fingerprint": fp, "matches": int(matches),
+    row = l.as_row() | {"matches": int(matches),
                         "raw_json": json.dumps(l.raw) if l.raw else None}
     with conn:
         old = conn.execute("SELECT id, price, status FROM listings WHERE source=? AND source_listing_id=?",
                            (l.source, l.source_listing_id)).fetchone()
         if old is None:
-            row["fingerprint"] = same_house(conn, l) or fp
+            row["fingerprint"] = same_house(conn, l) or own_key(l)
             cols = list(row) + ["first_seen", "last_seen"]
             cur = conn.execute(f"INSERT INTO listings ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})",
                                [*row.values(), ts, ts])
             conn.execute("INSERT INTO price_history VALUES (?,?,?)", (cur.lastrowid, l.price, ts))
             return "new"
-        # Keep known values if this pass didn't see them (e.g. card vs. detail page), and keep the
-        # fingerprint: it may have been joined to the same house on another site.
-        updates = {k: v for k, v in row.items() if (v is not None or k in ("price", "matches")) and k != "fingerprint"}
+        # Keep known values if this pass didn't see them (e.g. card vs. detail page).
+        updates = {k: v for k, v in row.items() if v is not None or k in ("price", "matches")}
         sets = ", ".join(f"{k}=?" for k in updates)
         conn.execute(f"UPDATE listings SET {sets}, last_seen=? WHERE id=?",
                      [*updates.values(), ts, old["id"]])
@@ -70,23 +80,66 @@ def upsert(conn, l: Listing, matches: bool, fp: str, ts: str | None = None) -> s
         return "relisted" if old["status"] in ("gone", "sold") and l.status == "active" else "unchanged"
 
 
-def same_house(conn, l: Listing) -> str | None:
+def _similar_place(a: str | None, b: str | None) -> bool:
+    """Sites spell places differently: "Bot River" ~ "Botrivier", "Sir Lowry's Pass" ~ "Sir Lowrys Pass"."""
+    a, b = _place_key(a or ""), _place_key(b or "")
+    return bool(a and b) and (a == b or SequenceMatcher(None, a, b).ratio() >= 0.85)
+
+
+def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
     """Fingerprint of this house as already listed on *another* site, if any.
 
-    Same suburb, type, beds and baths, plus the same price or an erf/floor size within 2%.
-    Catches pairs the size-based fingerprint misses (a card without sizes, or one site giving
-    only floor size and the other only erf). Garages are ignored: sites count parking differently.
+    Same type, beds and baths, a similar suburb name, plus the same price, the same monthly rates,
+    or an erf/floor size within 2%. Catches pairs the size-based fingerprint misses (a card without sizes, one site
+    giving only floor size, different spellings). Garages are ignored: sites count parking differently.
+    before_id: only consider listings stored before this one (used by relink()).
     """
     if not (l.suburb and l.beds is not None):
         return None
-    rows = conn.execute("SELECT fingerprint, price, erf_m2, floor_m2 FROM listings WHERE source <> ? "
-                        "AND lower(suburb) = lower(?) AND beds = ? AND baths IS ? AND property_type IS ?",
-                        (l.source, l.suburb, l.beds, l.baths, l.property_type)).fetchall()
-    close = lambda a, b: a and b and abs(a - b) <= 0.02 * max(a, b)
-    for r in rows:
-        if (l.price and r["price"] == l.price) or close(l.erf_m2, r["erf_m2"]) or close(l.floor_m2, r["floor_m2"]):
-            return r["fingerprint"]
-    return None
+    before = before_id or 2**62
+    lo_hi = lambda x: (x * 0.98, x / 0.98) if x else (None, None)
+    # Candidates come from the price/erf/floor indexes, never a full scan.
+    rows = conn.execute(
+        "SELECT fingerprint, suburb FROM listings l WHERE l.id IN ("
+        " SELECT id FROM listings WHERE price = ?"
+        " UNION SELECT id FROM listings WHERE rates = ?"
+        " UNION SELECT id FROM listings WHERE erf_m2 BETWEEN ? AND ?"
+        " UNION SELECT id FROM listings WHERE floor_m2 BETWEEN ? AND ?) "
+        "AND l.source <> ? AND l.id < ? AND l.beds = ? AND l.baths IS ? AND l.property_type IS ? "
+        # a group that already has a listing from this site has its twin: never a 2nd one
+        "AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint AND x.source = ? AND x.id < ?) "
+        "ORDER BY l.id",
+        (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), l.source, before, l.beds, l.baths, l.property_type,
+         l.source, before)).fetchall()
+    return next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
+
+
+HASH_FP = re.compile(r"[0-9a-f]{40}")  # old size-hash keys, which could merge two houses on one site
+
+
+def needs_relink(conn) -> bool:
+    """True while old size-hash keys are stored (new listings are linked when inserted)."""
+    return conn.execute("SELECT 1 FROM listings WHERE length(fingerprint) = 40 "
+                        "AND fingerprint NOT GLOB '*[^0-9a-f]*' LIMIT 1").fetchone() is not None
+
+
+def relink(conn) -> int:
+    """Join stored listings to the same house on the other site. Only ever merges, so a link
+    survives a later price change. Returns listings changed. No network."""
+    changed = 0
+    with conn:
+        for r in conn.execute("SELECT * FROM listings ORDER BY id").fetchall():
+            l = Listing.from_row(r)
+            current = own_key(l) if HASH_FP.fullmatch(r["fingerprint"] or "") else r["fingerprint"]
+            linked = current != own_key(l)
+            fp = current if linked else (same_house(conn, l, before_id=r["id"]) or current)
+            if fp != r["fingerprint"]:
+                conn.execute("UPDATE listings SET fingerprint=? WHERE id=?", (fp, r["id"]))
+                changed += 1
+        if changed:  # notifications follow their listing's group
+            conn.execute("UPDATE notifications SET fingerprint = "
+                         "(SELECT fingerprint FROM listings WHERE id = notifications.listing_id)")
+    return changed
 
 
 def start_run(conn, source: str) -> int:
@@ -142,8 +195,15 @@ def apply_details(conn, listing_id: int, d: dict, matches_fn) -> bool:
         conn.execute(f"UPDATE listings SET {sets}detail_fetched_at=?, last_checked=? WHERE id=?",
                      [*d.values(), now(), now(), listing_id])
         row = conn.execute("SELECT * FROM listings WHERE id=?", (listing_id,)).fetchone()
-        m = int(matches_fn(Listing.from_row(row)))
+        l = Listing.from_row(row)
+        m = int(matches_fn(l))
         conn.execute("UPDATE listings SET matches=? WHERE id=?", (m, listing_id))
+        # Not linked yet? Sizes and rates from the page may now reveal the twin on the other site.
+        if row["fingerprint"] == own_key(l):
+            fp = same_house(conn, l)
+            if fp:
+                conn.execute("UPDATE listings SET fingerprint=? WHERE id=?", (fp, listing_id))
+                conn.execute("UPDATE notifications SET fingerprint=? WHERE listing_id=?", (fp, listing_id))
     return bool(m)
 
 
@@ -264,11 +324,11 @@ def unhide(conn, listing_id: int) -> bool:
 
 SUMMARY_COLS = ("l.id, l.source, l.url, l.title, l.town, l.suburb, l.property_type, l.price, l.beds, "
                 "l.baths, l.garages, l.floor_m2, l.erf_m2, l.status, l.first_seen, l.last_seen, "
-                "f.rating, f.note, h.listing_id IS NOT NULL AS hidden")
+                "l.fingerprint, f.rating, f.note, h.listing_id IS NOT NULL AS hidden")
 
 
 def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=None, text=None,
-           favs=False, include_gone=False, matching_only=False, limit=20) -> list[dict]:
+           favs=False, include_gone=False, matching_only=False, detailed=False, limit=20) -> list[dict]:
     where, args = [], []
     for sql, val in (("l.town LIKE ?", town), ("l.suburb LIKE ?", suburb),
                      ("l.price <= ?", price_max), ("l.beds >= ?", beds_min), ("l.first_seen >= ?", since)):
@@ -284,10 +344,21 @@ def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=No
         where.append("l.status IN ('active', 'under_offer')")
     if matching_only:
         where.append("l.matches = 1")
+    if detailed:
+        where.append("l.detail_fetched_at IS NOT NULL")
     sql = (f"SELECT {SUMMARY_COLS} FROM listings l LEFT JOIN favourites f ON f.listing_id = l.id "
            f"LEFT JOIN hidden h ON h.listing_id = l.id "
-           f"{'WHERE ' + ' AND '.join(where) if where else ''} ORDER BY l.first_seen DESC, l.id DESC LIMIT ?")
-    return [dict(r) for r in conn.execute(sql, [*args, limit])]
+           f"{'WHERE ' + ' AND '.join(where) if where else ''} ORDER BY l.first_seen DESC, l.id DESC")
+    # One row per house: the same house on another site is folded into `also_on`.
+    out, by_fp = [], {}
+    for r in map(dict, conn.execute(sql, args)):
+        if r["fingerprint"] in by_fp:
+            by_fp[r["fingerprint"]]["also_on"].append(r["source"])
+            continue
+        if len(out) < limit:
+            by_fp[r["fingerprint"]] = r | {"also_on": []}
+            out.append(by_fp[r["fingerprint"]])
+    return out
 
 
 def show(conn, listing_id: int) -> dict | None:

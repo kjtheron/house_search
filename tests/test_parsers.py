@@ -91,7 +91,7 @@ def test_property24_detail_pages():
     d = property24.parse_detail((FIX / "property24/listing_full_features.html").read_text())
     assert (d["floor_m2"], d["erf_m2"], d["garages"], d["parking"], d["rates"]) == (280, 502, 2, 2, 2300)
     assert d["pets"] is True and d["listed_at"] == "2026-09-22" and d["status"] == "active"
-    assert {"flatlet", "garden", "braai", "fibre", "alarm_system", "coastal"} <= set(d["features"])
+    assert {"flatlet", "garden", "braai", "fibre", "alarm", "coastal"} <= set(d["features"])
     assert d["description"].startswith("A Peaceful Coastal Lifestyle")
     assert d["description"].count("A Peaceful Coastal Lifestyle") == 1  # full text only, not the preview too
     d = property24.parse_detail((FIX / "property24/listing_under_offer.html").read_text())
