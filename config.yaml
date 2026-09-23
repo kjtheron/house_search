@@ -9,10 +9,13 @@ search:
     St Helena Bay, George, Saldanha, Porterville,
     Velddrif, Goodwood, Parow, Kraaifontein,
     Piketberg, Bonnievale, Clanwilliam,
-    Pringle Bay, Milnerton
+    Pringle Bay, Milnerton, Moorreesburg,
+    Darling, Kleinmond, Albertinia, Bot River
     ]                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
-  exclude_suburbs: [Lansdowne]                            # never alert for these
+  exclude_suburbs: [
+    Lansdowne, Woodstock, Grassy Park, Belhar
+    ]                            # never alert for these
   property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
   price_min: 2000000                             # ZAR
   price_max: 2800000
