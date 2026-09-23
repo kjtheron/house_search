@@ -324,11 +324,12 @@ def unhide(conn, listing_id: int) -> bool:
 
 SUMMARY_COLS = ("l.id, l.source, l.url, l.title, l.town, l.suburb, l.property_type, l.price, l.beds, "
                 "l.baths, l.garages, l.floor_m2, l.erf_m2, l.status, l.first_seen, l.last_seen, "
-                "l.fingerprint, f.rating, f.note, h.listing_id IS NOT NULL AS hidden")
+                "l.fingerprint, f.rating, f.note, l.fingerprint IN (SELECT fingerprint FROM hidden_fps) AS hidden")
 
 
 def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=None, text=None,
-           favs=False, include_gone=False, matching_only=False, detailed=False, limit=20) -> list[dict]:
+           favs=False, include_gone=False, matching_only=False, detailed=False, limit=20,
+           include_hidden=False) -> list[dict]:
     where, args = [], []
     for sql, val in (("l.town LIKE ?", town), ("l.suburb LIKE ?", suburb),
                      ("l.price <= ?", price_max), ("l.beds >= ?", beds_min), ("l.first_seen >= ?", since)):
@@ -344,10 +345,12 @@ def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=No
         where.append("l.status IN ('active', 'under_offer')")
     if matching_only:
         where.append("l.matches = 1")
+    if not include_hidden:  # hiding one site's copy hides the house, as for notifications
+        where.append("l.fingerprint NOT IN (SELECT fingerprint FROM hidden_fps)")
     if detailed:
         where.append("l.detail_fetched_at IS NOT NULL")
-    sql = (f"SELECT {SUMMARY_COLS} FROM listings l LEFT JOIN favourites f ON f.listing_id = l.id "
-           f"LEFT JOIN hidden h ON h.listing_id = l.id "
+    sql = (f"WITH hidden_fps AS (SELECT l2.fingerprint FROM hidden h JOIN listings l2 ON l2.id = h.listing_id) "
+           f"SELECT {SUMMARY_COLS} FROM listings l LEFT JOIN favourites f ON f.listing_id = l.id "
            f"{'WHERE ' + ' AND '.join(where) if where else ''} ORDER BY l.first_seen DESC, l.id DESC")
     # One row per house: the same house on another site is folded into `also_on`.
     out, by_fp = [], {}

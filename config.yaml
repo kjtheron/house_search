@@ -4,9 +4,15 @@
 search:
   province: western-cape
   towns: []                                      # only these towns; [] = any town. Or: housebot towns add/rm
-  exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
+  exclude_towns: [
+    Knysna, Oudtshoorn, Mossel Bay, Vredenburg,
+    St Helena Bay, George, Saldanha, Porterville,
+    Velddrif, Goodwood, Parow, Kraaifontein,
+    Piketberg, Bonnievale, Clanwilliam,
+    Pringle Bay, Milnerton
+    ]                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
-  exclude_suburbs: []                            # never alert for these
+  exclude_suburbs: [Lansdowne]                            # never alert for these
   property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
   price_min: 2000000                             # ZAR
   price_max: 2800000

@@ -128,13 +128,13 @@ def search(town: Optional[str] = None, suburb: Optional[str] = None,
            price_max: Optional[int] = None, beds_min: Optional[float] = None,
            since: Annotated[Optional[str], typer.Option(help="7d, today or YYYY-MM-DD (first seen).")] = None,
            text: Annotated[Optional[str], typer.Option(help="Word in title or description.")] = None,
-           favs: bool = False, include_gone: bool = False,
+           favs: bool = False, include_gone: bool = False, include_hidden: bool = False,
            matching: Annotated[bool, typer.Option(help="Only listings that pass config.yaml.")] = False,
            detailed: Annotated[bool, typer.Option(help="Only listings whose own page was fetched.")] = False,
            limit: int = 20, as_json: Json = False):
     """Query stored listings."""
     rows = db.search(_conn(), town, suburb, price_max, beds_min, _since(since), text, favs, include_gone,
-                     matching, detailed, limit)
+                     matching, detailed, limit, include_hidden)
     _out(rows, as_json, lambda rs: typer.echo("\n".join(map(_line, rs)) or "No listings."))
 
 
@@ -176,7 +176,7 @@ def fav_rm(listing_id: int, as_json: Json = False):
 
 @fav_app.command("list")
 def fav_list(as_json: Json = False):
-    rows = db.search(_conn(), favs=True, include_gone=True, limit=1000)
+    rows = db.search(_conn(), favs=True, include_gone=True, limit=1000, include_hidden=True)
     _out(rows, as_json, lambda rs: typer.echo("\n".join(map(_line, rs)) or "No favourites yet."))
 
 

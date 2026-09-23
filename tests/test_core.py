@@ -334,6 +334,9 @@ def test_check_updates_status(conn):
     assert [(c["id"], c["status"]) for c in changed] == [(1, "sold")]
     assert [l["id"] for l in db.to_check(conn)] == []  # 1 sold, 2 just checked, 3 just seen
     assert {l["id"] for l in db.search(conn)} == {2, 3}
+    db.hide(conn, 2)
+    assert {l["id"] for l in db.search(conn)} == {3}
+    assert {l["id"] for l in db.search(conn, include_hidden=True)} == {2, 3}
 
 
 def test_backfill_never_marks_gone(conn, tmp_path):
