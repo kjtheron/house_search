@@ -21,7 +21,7 @@ Needs Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 git clone https://github.com/kjtheron/house_search.git && cd house_search
 uv sync
 cp .env.example .env              # add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID
-$EDITOR config.yaml               # what you're looking for
+cp config.example.yaml config.yaml && $EDITOR config.yaml   # what you're looking for
 uv run housebot config show       # check the config
 uv run housebot run --dry-run     # scrape + print the alerts, send nothing
 ```

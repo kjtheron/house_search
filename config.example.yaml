@@ -4,41 +4,32 @@
 search:
   province: western-cape
   towns: []                                      # only these towns; [] = any town. Or: housebot towns add/rm
-  exclude_towns: [
-    Knysna, Oudtshoorn, Mossel Bay, Vredenburg,
-    St Helena Bay, George, Saldanha, Porterville,
-    Velddrif, Goodwood, Parow, Kraaifontein,
-    Piketberg, Bonnievale, Clanwilliam,
-    Pringle Bay, Milnerton, Moorreesburg,
-    Darling, Kleinmond, Albertinia, Bot River
-    ]                              # never alert for these, e.g. [Cape Town, Mossel Bay]
+  exclude_towns: []                              # never alert for these, e.g. [Cape Town, Mossel Bay]
   suburbs: []                                    # optional narrower filter
-  exclude_suburbs: [
-    Lansdowne, Woodstock, Grassy Park, Belhar
-    ]                            # never alert for these
-  property_types: [house, townhouse]             # house | townhouse | apartment | vacant_land | farm
-  price_min: 2000000                             # ZAR
-  price_max: 2800000
+  exclude_suburbs: []                            # never alert for these
+  property_types: []                             # e.g. [house, townhouse]; house | townhouse | apartment | vacant_land | farm
+  price_min: null                                # ZAR
+  price_max: null
   # min/max pairs: leave a value empty (null) for no limit
-  beds_min: 3
-  beds_max: 4
-  baths_min: 1
-  baths_max: 3
-  garages_min: 0
-  garages_max: 3
-  floor_min_m2: 150                              # optional
+  beds_min: null
+  beds_max: null
+  baths_min: null
+  baths_max: null
+  garages_min: null
+  garages_max: null
+  floor_min_m2: null                             # optional
   floor_max_m2: null
-  erf_min_m2: 400                                # optional
+  erf_min_m2: null                               # optional
   erf_max_m2: null
-  garden_min_m2: 15                              # estimated as erf - floor footprint; needs both sizes
+  garden_min_m2: null                            # estimated as erf - floor footprint; needs both sizes
   # These need the listing's own page (see details: below); until fetched they count as unknown.
-  storeys_max: 2                              # e.g. 1 = single storey only
+  storeys_max: null                              # e.g. 1 = single storey only
   ensuite_min: null
   require_features: []                           # e.g. [garden, flatlet]; names: `housebot features`
   exclude_features: []                           # e.g. [pool]
   max_listing_age_days: null                     # skip listings on the market longer than this
   include_keywords: []                           # all must appear in title + description
-  exclude_keywords: [retirement, "life right", "share block"]
+  exclude_keywords: []                           # e.g. [retirement, "life right"]
   include_auctions: false
   unknown_values_pass: true                      # listing lacks floor size -> still passes?
 
@@ -69,16 +60,16 @@ http:
   user_agent: "housebot/1.0 (personal use)"
 
 notify:
-  max_per_run: 25          # overflow gets one summary message
+  max_per_run: 25                                # overflow gets one summary message
   send_photo: true
-  quiet_if_none: false     # send "No new matches today" message?
+  quiet_if_none: false                           # send "No new matches today" message?
 
 details:
-  per_run: 40              # listing pages fetched per run for new matches; alerts wait for them (0 = off)
-  max_attempts: 3          # after this many failed fetches, alert with the card data only
+  per_run: 40                                    # listing pages fetched per run for new matches; alerts wait for them (0 = off)
+  max_attempts: 3                                # after this many failed fetches, alert with the card data only
 
 check:
-  per_run: 10              # listing pages re-checked each run for sold / under offer (favourites first)
+  per_run: 10                                    # listing pages re-checked each run for sold / under offer (favourites first)
 
 paths:
-  db: data/housebot.db     # relative to the working directory
+  db: data/housebot.db                           # relative to the working directory
