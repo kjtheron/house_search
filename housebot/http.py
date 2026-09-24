@@ -17,9 +17,14 @@ from .config import HttpConfig
 
 log = logging.getLogger(__name__)
 
+# Bot-check pages some sites serve with status 200. Not plain "captcha": normal pages embed reCaptcha.
+# ponytail: common WAF markers only; add the sites' own block text if we ever see one
+CHALLENGE = ("_cf_chl_opt", "<title>Just a moment", "Attention Required! | Cloudflare",
+             "_Incapsula_Resource", "px-captcha", "cf-turnstile")
+
 
 class Blocked(Exception):
-    """Site answered 403/429/503. Stop this source for today; never try to evade it."""
+    """Site answered 403/429/503 or a bot-check page. Stop this source for today; never try to evade it."""
 
 
 class PoliteClient:
@@ -47,6 +52,8 @@ class PoliteClient:
             else:
                 if r.status_code in (403, 429, 503):  # 503 here = the site throttling us
                     raise Blocked(f"{r.status_code} from {url}")
+                if any(m in r.text[:20000] for m in CHALLENGE):
+                    raise Blocked(f"challenge page from {url}")
                 if r.status_code < 500:
                     return r
                 log.warning("GET %s -> %d, attempt %d", url, r.status_code, attempt)

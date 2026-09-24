@@ -228,6 +228,19 @@ def test_polite_delay():
     assert len(naps) == 1 and 5 <= naps[0] <= 10
 
 
+def test_challenge_page_blocks():
+    from pathlib import Path
+    from housebot.http import Blocked
+    c = PoliteClient(HttpConfig(min_delay_s=0, max_delay_s=0), sleep=lambda s: None)
+    page = "<html><title>Just a moment...</title></html>"
+    c._client.get = lambda url: type("R", (), {"status_code": 200, "text": page})()
+    with pytest.raises(Blocked):
+        c.get("https://a.com/x")
+    for f in Path(__file__).parent.glob("fixtures/*/*.html"):  # real pages must pass
+        page = f.read_text()
+        assert c.get("https://a.com/x").text == page
+
+
 def test_bad_config_is_readable(tmp_path):
     p = tmp_path / "c.yaml"
     p.write_text("search: {towns: Paarl, price_min: lots}\nsources: {}\n")
