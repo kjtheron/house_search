@@ -87,11 +87,13 @@ def _similar_place(a: str | None, b: str | None) -> bool:
 
 
 def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
-    """Fingerprint of this house as already listed on *another* site, if any.
+    """Fingerprint of this house as already listed elsewhere, if any.
 
-    Same type, beds and baths, a similar suburb name, plus the same price, the same monthly rates,
-    or an erf/floor size within 2%. Catches pairs the size-based fingerprint misses (a card without sizes, one site
-    giving only floor size, different spellings). Garages are ignored: sites count parking differently.
+    Another site: same type, beds and baths, a similar suburb name, plus the same price, the same monthly
+    rates, or an erf/floor size within 2%. Catches pairs the size-based fingerprint misses (a card without
+    sizes, one site giving only floor size, different spellings). Garages are ignored: sites count parking differently.
+    Same site (one house, several agencies): all of that plus the same price, a size within 2% and a
+    different agency, so units in one development (same agency) stay apart.
     before_id: only consider listings stored before this one (used by relink()).
     """
     if not (l.suburb and l.beds is not None):
@@ -105,12 +107,19 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
         " UNION SELECT id FROM listings WHERE rates = ?"
         " UNION SELECT id FROM listings WHERE erf_m2 BETWEEN ? AND ?"
         " UNION SELECT id FROM listings WHERE floor_m2 BETWEEN ? AND ?) "
-        "AND l.source <> ? AND l.id < ? AND l.beds = ? AND l.baths IS ? AND l.property_type IS ? "
-        # a group that already has a listing from this site has its twin: never a 2nd one
-        "AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint AND x.source = ? AND x.id < ?) "
+        "AND l.id < ? AND l.beds = ? AND l.baths IS ? AND l.property_type IS ? AND ("
+        # another site: a group that already has a listing from this site has its twin, never a 2nd one
+        " (l.source <> ? AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
+        "  AND x.source = ? AND x.id < ?))"
+        # same site, an agency the group doesn't have yet (NULL agency or price never passes)
+        " OR (l.source = ? AND l.price = ? AND l.agency <> ?"
+        "  AND (l.erf_m2 BETWEEN ? AND ? OR l.floor_m2 BETWEEN ? AND ?)"
+        "  AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint AND x.agency = ?"
+        "   AND x.id < ?))) "
         "ORDER BY l.id",
-        (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), l.source, before, l.beds, l.baths, l.property_type,
-         l.source, before)).fetchall()
+        (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), before, l.beds, l.baths, l.property_type,
+         l.source, l.source, before, l.source, l.price, l.agency, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2),
+         l.agency, before)).fetchall()
     return next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
 
 

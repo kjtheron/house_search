@@ -296,6 +296,17 @@ def test_newest_first_stops_when_caught_up():
     assert len([p for p in a.pages(SEARCH, known={"7", "6"})]) == 4 and a.complete
 
 
+def test_parser_decides_next_page_and_one_feed_for_all_types():
+    from housebot.config import SourceConfig
+    A = fake_adapter(False)
+    parse = A.parse
+    A.parse = lambda self, html: Page(listings=parse(self, html).listings, more=html.startswith("1|"))
+    A.per_type = False
+    http = FakeHttp(["9,8", "7,6", "5,4"])
+    got = [p for p in A(http, SourceConfig(province_id=9)).pages(SEARCH.model_copy(update={"property_types": ["house", "townhouse"]}))]
+    assert len(got) == 2 and http.urls == ["x?p=1", "x?p=2"]  # HTML says "more3", the parser says stop
+
+
 # --- towns, backfill, check -----------------------------------------------------
 
 def test_set_towns_keeps_comments_and_rolls_back(tmp_path):
@@ -473,6 +484,25 @@ def test_same_house_when_sites_give_different_sizes(conn):
     put(conn, house("1", erf_m2=487, floor_m2=None, price=2_350_000))
     put(conn, house("T1", "privateproperty", erf_m2=490, floor_m2=162, price=2_300_000))  # erf within 2%
     assert send_all(conn) == [(1, "new")]
+
+
+def test_same_house_on_five_sites_notifies_once(conn):
+    for src, lid in [("property24", "1"), ("privateproperty", "T1"), ("pamgolding", "KN1"), ("seeff", "31"),
+                     ("harcourts", "32")]:
+        put(conn, house(lid, src, erf_m2=None, price=2_795_000))
+    assert send_all(conn) == [(1, "new")]
+    assert {r[0] for r in conn.execute("SELECT fingerprint FROM listings")} == {"property24:1"}
+
+
+def test_same_house_same_site_other_agency(conn):
+    # The De Kelders house: one site, three agencies, same price and sizes -> one alert.
+    for lid, agency in [("1", "Fine & Country"), ("2", "Ellis Real Estate"), ("3", "Seeff Country")]:
+        put(conn, house(lid, agency=agency, erf_m2=595, floor_m2=178, price=2_495_000))
+    put(conn, house("4", agency="Ellis Real Estate", erf_m2=595, price=2_495_000))    # same agency: another unit
+    put(conn, house("5", agency="Other Agency", erf_m2=595, price=2_450_000))         # other price
+    put(conn, house("6", agency="Third Agency", erf_m2=None, floor_m2=None, price=2_495_000))  # no size
+    fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
+    assert fps == ["property24:1"] * 3 + ["property24:4", "property24:5", "property24:6"]
 
 
 def test_not_same_house(conn):

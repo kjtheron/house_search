@@ -107,9 +107,11 @@ def to_float(text: str | None) -> float | None:
 
 # Order matters: "townhouse" and "farm house" must hit before plain "house".
 TYPE_WORDS = {
-    "townhouse": "townhouse", "cluster": "townhouse", "duplex": "townhouse",
+    "townhouse": "townhouse", "town house": "townhouse", "cluster": "townhouse", "duplex": "townhouse", "simplex": "townhouse",
     "apartment": "apartment", "flat": "apartment", "penthouse": "apartment",
     "vacant land": "vacant_land", "plot": "vacant_land", "farm": "farm", "smallholding": "farm",
+    "freehold": "house", "freestanding": "house", "estate home": "house",  # agency sites' type names
+    "complex home": "townhouse",
     "house": "house",
 }
 

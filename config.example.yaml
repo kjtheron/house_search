@@ -39,7 +39,7 @@ search:
 #   privateproperty.co.za/for-sale/western-cape/boland/stellenbosch/712  -> 712  (province: /western-cape/4)
 # max_pages is per town (or province) per property type.
 sources:
-  # Both sites sort newest first: after the first run a source stops at the first page it has
+  # All sites sort newest first: after the first run a source stops at the first page it has
   # already seen, so the whole province costs only a few pages a day.
   property24:
     enabled: true
@@ -52,6 +52,26 @@ sources:
     max_pages: 15
     province_id: 4
     locations: {}       # e.g. {Stellenbosch: 712, Somerset West: 711, Paarl: 715}
+  pamgolding:
+    # Newest first. Location IDs from the search URL:
+    #   pamgolding.co.za/property-search/houses-for-sale-stellenbosch/2932  (province: -western-cape/2108)
+    enabled: true
+    max_pages: 10
+    province_id: 2108
+    locations: {}       # e.g. {Stellenbosch: 2932, Somerset West: 2192}
+  seeff:
+    # Newest first. No province search: reads the national feed (all types, price/beds filtered)
+    # and keeps Western Cape areas. Towns are searched by name; their ID is a placeholder (0).
+    enabled: true
+    max_pages: 10
+    province_id: 0      # unused
+    locations: {}       # e.g. {Stellenbosch: 0, Somerset West: 0}
+  harcourts:
+    # Same platform as Seeff.
+    enabled: true
+    max_pages: 10
+    province_id: 0      # unused
+    locations: {}
 
 http:
   min_delay_s: 5

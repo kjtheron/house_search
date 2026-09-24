@@ -2,7 +2,7 @@
 
 A daily house-hunting bot for the Western Cape, South Africa. Runs on a Raspberry Pi.
 
-- Collects for-sale listings from Property24 and Private Property, newest first, across the whole province or a list of towns.
+- Collects for-sale listings from Property24, Private Property, Pam Golding, Seeff and Harcourts, newest first, across the whole province or a list of towns. The same house on several sites is alerted once.
 - Filters them against your search criteria (towns, excluded towns, price, beds, size, keywords).
 - Stores everything in SQLite and sends **new matches and price changes** to Telegram, once per house per price.
 - Lets you chat with a [PicoClaw](https://github.com/sipeed/picoclaw) agent (Ollama Cloud LLM) to favourite, hide and search listings.
@@ -28,7 +28,7 @@ uv run housebot run --dry-run     # scrape + print the alerts, send nothing
 
 Each site searches either a list of towns (`locations: {Town: site ID}`, best for a few towns) or the
 whole province (`locations: {}`, best for "anywhere"), newest first, so after the first run it reads
-only a few pages a day. `towns` filters what you get alerted about. `housebot towns add/rm` keeps
+only a few pages a day. The sites pre-filter by price and beds in the URL; `config.yaml` filters the rest. `towns` filters what you get alerted about. `housebot towns add/rm` keeps
 `towns` and the town-mode `locations` in step, looking up each site's ID for you. Each run also re-checks a few favourites and matches (`check.per_run`) and tells you if a
 favourite is sold or under offer.
 
@@ -37,12 +37,44 @@ before you're alerted, so filters like `storeys_max` and `require_features` appl
 pages per run; a backlog (e.g. after a backfill) drains over the next runs.
 
 `--dry-run` prints the Telegram messages instead of sending them and records nothing as sent, so you can repeat it.
-Drop `--dry-run` to send for real. Delete `data/` to start from an empty database.
+It still fetches pages from the sites. Drop `--dry-run` to send for real. Delete `data/` to start from an empty database.
+
+## Sources
+
+| Site | `sources:` name | Province search | Town search (`locations`) |
+|---|---|---|---|
+| Property24 | `property24` | `province_id: 9` | town ID from the search URL |
+| Private Property | `privateproperty` | `province_id: 4` | town ID from the search URL |
+| Pam Golding | `pamgolding` | `province_id: 2108` | town ID from the search URL |
+| Seeff | `seeff` | national feed, Western Cape areas kept | area name, ID `0` |
+| Harcourts | `harcourts` | national feed, Western Cape areas kept | area name, ID `0` |
+
+Seeff and Harcourts run on the same platform (Propdata), which has no province search. A province
+search reads their national feed (all types, price and beds filtered by the site) and keeps the areas
+listed in `PROVINCE_AREAS` in `housebot/adapters/propdata.py`. Only the Western Cape is listed.
+
+The same house on several sites (same type, beds, baths, similar suburb, and the same price, rates or
+size within 2%) is grouped, so you get one alert. Its details are fetched once and copied to the others.
+Set `enabled: false` to switch a site off.
+
+All requests go through one polite client: a random 15–30 s wait between requests to the same site
+(`http.*`), and a site that answers 403/429/503 or a bot-check page is stopped for the rest of the run.
+
+### Adding a site to an existing database
+
+Backfill only the new site, then run as normal:
+
+```bash
+uv run housebot backfill --source pamgolding --source seeff --source harcourts --pages 20
+uv run housebot run
+uv run housebot details --limit 10 # Clear detailed backlog
+```
 
 ## Using it from the command line
 
 ```bash
 uv run housebot search --matching                    # latest listings that pass config.yaml
+uv run housebot search --since today --matching
 uv run housebot search --town Paarl --price-max 3500000 --beds-min 4
 uv run housebot search --since 7d --text pool        # new this week, "pool" in the text
 uv run housebot show 142                             # details, price history, same house on other sites
@@ -54,11 +86,12 @@ uv run housebot sources                              # is each scraper healthy?
 uv run housebot towns list                           # town filter (empty = whole province)
 uv run housebot towns add Paarl                      # alert for Paarl too (+ its site IDs in town mode)
 uv run housebot towns add Paarl --history            # ...and read all of Paarl's current listings once
-uv run housebot backfill --pages 30                  # one-off: go ~30 pages further back (no early stop)
+uv run housebot backfill --pages 20                  # one-off: go ~20 pages further back (no early stop)
+uv run housebot backfill --source seeff --pages 20   # ...on one site only (repeat --source for more)
 uv run housebot towns rm Paarl                       # stop, and delete Paarl's listings (favourites kept)
 uv run housebot check 142                            # still for sale? (sold / under offer / gone)
 uv run housebot check --favs --bg                    # --bg: run in background, Telegram message when done
-uv run housebot details --bg                         # fetch waiting listing pages now (normally 40 per run)
+uv run housebot details --limit 10                   # fetch waiting listing pages now (normally details.per_run)
 uv run housebot features                             # feature names seen, for require/exclude_features
 uv run housebot rematch                              # after editing config.yaml: re-check stored listings now
 ```
@@ -124,6 +157,13 @@ journalctl -u housebot                    # logs
 
 Edit the paths and `User=` in `housebot.service` to match your setup first.
 Full Pi setup (OS, user, Ollama, PicoClaw install) comes later.
+
+### Moving the database from a laptop to the Pi
+
+1. On the Pi, update the code first (`git pull && uv sync`).
+2. Stop the timer on the Pi (`sudo systemctl stop housebot.timer`). Make sure no housebot command runs on the laptop.
+3. Copy `data/housebot.db` and `config.yaml` to the Pi. `config.yaml` is not in git.
+4. Start the timer again (`sudo systemctl start housebot.timer`).
 
 ## License
 

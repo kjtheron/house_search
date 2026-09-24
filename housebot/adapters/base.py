@@ -26,6 +26,7 @@ class Page:
     listings: list[Listing] = field(default_factory=list)
     errors: int = 0
     html: str = ""  # kept so a broken run can save it to data/debug/
+    more: bool | None = None  # parser knows if page N+1 exists; None = look for next_page in the HTML
 
 
 class BaseAdapter:
@@ -38,6 +39,7 @@ class BaseAdapter:
     name = ""
     newest_first = False
     next_page = ""  # text in the HTML that proves page N+1 exists, formatted with N+1
+    per_type = True  # False: one search covers every property type (match.py filters the type)
 
     def __init__(self, http: PoliteClient, src: SourceConfig):
         self.http, self.src = http, src
@@ -52,7 +54,7 @@ class BaseAdapter:
         targets = list(self.src.locations.items()) or [(None, self.src.province_id)]
         self.complete = True
         for town, loc_id in targets:
-            for ptype in cfg.property_types:
+            for ptype in cfg.property_types if self.per_type else [None]:
                 seen: set[str] = set()
                 for n in range(1, self.src.max_pages + 1):
                     r = self.http.get(self.search_url(cfg, town, loc_id, ptype, n))
@@ -65,7 +67,8 @@ class BaseAdapter:
                     yield page
                     # Promoted cards are out of date order, so they don't count toward "caught up".
                     ids = {l.source_listing_id for l in page.listings if not l.raw.get("promoted")}
-                    if not ids - seen or self.next_page.format(n + 1) not in r.text:
+                    more = page.more if page.more is not None else self.next_page.format(n + 1) in r.text
+                    if not ids - seen or not more:
                         break  # natural end of results
                     if self.newest_first and known and not ids - known:
                         self.complete = False  # caught up with yesterday

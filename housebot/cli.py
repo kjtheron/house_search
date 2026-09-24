@@ -337,13 +337,21 @@ def backfill(town: Annotated[Optional[str], typer.Argument(help="One town's full
                                                           "back further in each site's normal search.")] = None,
              pages: Annotated[int, typer.Option(help="Pages per property type per site (~20 listings each).",
                                                 min=1, max=100)] = 30,
+             source: Annotated[Optional[list[str]], typer.Option(help="Only this site (repeat for more).")] = None,
              bg: Bg = False, done: Done = False, as_json: Json = False):
     """Read older listings once, with no early stop: one town, or (no town) the normal search deeper."""
     what = f"full-history read of {town}" if town else f"backfill ({pages} pages per type)"
     if bg:
-        _spawn(["backfill", *([town] if town else []), "--pages", str(pages)])
+        _spawn(["backfill", *([town] if town else []), "--pages", str(pages),
+                *[a for s in source or [] for a in ("--source", s)]])
         return _started(what, as_json)
     cfg = _cfg()
+    if source:
+        unknown = set(source) - set(cfg.sources)
+        if unknown:
+            typer.echo(f"Unknown source: {', '.join(sorted(unknown))}. Sources: {', '.join(cfg.sources)}", err=True)
+            raise typer.Exit(1)
+        cfg = cfg.model_copy(update={"sources": {n: s for n, s in cfg.sources.items() if n in source}})
     with pipeline.session(cfg) as (conn, http):
         ids = None
         if town:
