@@ -486,9 +486,23 @@ def test_same_house_when_sites_give_different_sizes(conn):
     assert send_all(conn) == [(1, "new")]
 
 
-def test_same_house_on_five_sites_notifies_once(conn):
+def test_search_shows_house_under_oldest_listing(conn):
+    put(conn, house("1"), ts="2026-01-01T00:00:00")
+    put(conn, house("T1", "privateproperty"), ts="2026-02-01T00:00:00")  # same house, found later
+    rows = db.search(conn)
+    assert [(r["id"], r["also_on"]) for r in rows] == [(1, ["privateproperty"])]
+    assert db.search(conn, since="2026-01-15") == []  # the house isn't new, only this copy
+
+
+def test_search_by_source(conn):
+    put(conn, house("1"))
+    put(conn, house("T1", "privateproperty", price=9_000_000, suburb="Elsewhere"))
+    assert [r["source"] for r in db.search(conn, source="privateproperty")] == ["privateproperty"]
+
+
+def test_same_house_on_six_sites_notifies_once(conn):
     for src, lid in [("property24", "1"), ("privateproperty", "T1"), ("pamgolding", "KN1"), ("seeff", "31"),
-                     ("harcourts", "32")]:
+                     ("harcourts", "32"), ("remax", "33")]:
         put(conn, house(lid, src, erf_m2=None, price=2_795_000))
     assert send_all(conn) == [(1, "new")]
     assert {r[0] for r in conn.execute("SELECT fingerprint FROM listings")} == {"property24:1"}
@@ -630,7 +644,7 @@ def test_same_house_with_different_spelling_and_relink(conn):
     conn.execute("UPDATE listings SET fingerprint='privateproperty:T385' WHERE id=2")  # not linked, as before the fix
     assert db.relink(conn) == 1
     assert len({r[0] for r in conn.execute("SELECT fingerprint FROM listings")}) == 1
-    assert [(r["id"], r["also_on"]) for r in db.search(conn)] == [(2, ["property24"])]  # one row per house
+    assert [(r["id"], r["also_on"]) for r in db.search(conn)] == [(1, ["privateproperty"])]  # one row per house
 
 
 def test_feature_synonyms_apply_to_stored_rows():

@@ -74,6 +74,7 @@ FEATURE_SYNONYMS = {
     "wheelchair_accessible": "wheelchair", "wheel_chair_friendly": "wheelchair", "wheelchair_friendly": "wheelchair",
     "solar_panels": "solar", "solar_geyser": "solar", "solar_panels_solar_geyser": "solar",
     "backup_battery_inverter": "inverter", "paveway": "paving",
+    "fire_place": "fireplace", "open_plan_special_feature": "open_plan",
 }
 
 

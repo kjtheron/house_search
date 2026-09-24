@@ -5,5 +5,6 @@ from .pamgolding import PamGolding
 from .privateproperty import PrivateProperty
 from .propdata import Harcourts, Seeff
 from .property24 import Property24
+from .remax import Remax
 
-ADAPTERS = {a.name: a for a in (Property24, PrivateProperty, PamGolding, Seeff, Harcourts)}
+ADAPTERS = {a.name: a for a in (Property24, PrivateProperty, PamGolding, Seeff, Harcourts, Remax)}

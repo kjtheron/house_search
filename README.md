@@ -2,7 +2,7 @@
 
 A daily house-hunting bot for the Western Cape, South Africa. Runs on a Raspberry Pi.
 
-- Collects for-sale listings from Property24, Private Property, Pam Golding, Seeff and Harcourts, newest first, across the whole province or a list of towns. The same house on several sites is alerted once.
+- Collects for-sale listings from Property24, Private Property, Pam Golding, Seeff, Harcourts and RE/MAX, newest first, across the whole province or a list of towns. The same house on several sites is alerted once.
 - Filters them against your search criteria (towns, excluded towns, price, beds, size, keywords).
 - Stores everything in SQLite and sends **new matches and price changes** to Telegram, once per house per price.
 - Lets you chat with a [PicoClaw](https://github.com/sipeed/picoclaw) agent (Ollama Cloud LLM) to favourite, hide and search listings.
@@ -48,13 +48,19 @@ It still fetches pages from the sites. Drop `--dry-run` to send for real. Delete
 | Pam Golding | `pamgolding` | `province_id: 2108` | town ID from the search URL |
 | Seeff | `seeff` | national feed, Western Cape areas kept | area name, ID `0` |
 | Harcourts | `harcourts` | national feed, Western Cape areas kept | area name, ID `0` |
+| RE/MAX | `remax` | newest 240 listings in the province | town name, ID `0` |
 
 Seeff and Harcourts run on the same platform (Propdata), which has no province search. A province
 search reads their national feed (all types, price and beds filtered by the site) and keeps the areas
 listed in `PROVINCE_AREAS` in `housebot/adapters/propdata.py`. Only the Western Cape is listed.
 
+RE/MAX shows only its newest 240 listings per page (all types, about two months) and ignores URL
+filters, so it costs one request per run. To reach older RE/MAX listings, backfill a town: that
+page holds the town's newest 240. RE/MAX listings are never marked gone just because they drop off the page.
+
 The same house on several sites (same type, beds, baths, similar suburb, and the same price, rates or
-size within 2%) is grouped, so you get one alert. Its details are fetched once and copied to the others.
+size within 2%) is grouped, so you get one alert. So is one house listed by several agencies on the same
+site (same price, size within 2%, different agency). Its details are fetched once and copied to the others.
 Set `enabled: false` to switch a site off.
 
 All requests go through one polite client: a random 15–30 s wait between requests to the same site
@@ -66,6 +72,8 @@ Backfill only the new site, then run as normal:
 
 ```bash
 uv run housebot backfill --source pamgolding --source seeff --source harcourts --pages 20
+uv run housebot backfill --source remax              # newest 240 in the province
+uv run housebot backfill Stellenbosch --source remax # older RE/MAX listings, one town at a time
 uv run housebot run
 uv run housebot details --limit 10 # Clear detailed backlog
 ```
@@ -77,6 +85,7 @@ uv run housebot search --matching                    # latest listings that pass
 uv run housebot search --since today --matching
 uv run housebot search --town Paarl --price-max 3500000 --beds-min 4
 uv run housebot search --since 7d --text pool        # new this week, "pool" in the text
+uv run housebot search --source remax --matching     # one site only
 uv run housebot show 142                             # details, price history, same house on other sites
 uv run housebot fav add 142 --rating 4 --note "big garden"
 uv run housebot fav list

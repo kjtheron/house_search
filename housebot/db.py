@@ -338,10 +338,10 @@ SUMMARY_COLS = ("l.id, l.source, l.url, l.title, l.town, l.suburb, l.property_ty
 
 def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=None, text=None,
            favs=False, include_gone=False, matching_only=False, detailed=False, limit=20,
-           include_hidden=False) -> list[dict]:
+           include_hidden=False, source=None) -> list[dict]:
     where, args = [], []
-    for sql, val in (("l.town LIKE ?", town), ("l.suburb LIKE ?", suburb),
-                     ("l.price <= ?", price_max), ("l.beds >= ?", beds_min), ("l.first_seen >= ?", since)):
+    for sql, val in (("l.town LIKE ?", town), ("l.suburb LIKE ?", suburb), ("l.source = ?", source),
+                     ("l.price <= ?", price_max), ("l.beds >= ?", beds_min), ("g.first_seen >= ?", since)):
         if val is not None:
             where.append(sql)
             args.append(val)
@@ -358,9 +358,13 @@ def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=No
         where.append("l.fingerprint NOT IN (SELECT fingerprint FROM hidden_fps)")
     if detailed:
         where.append("l.detail_fetched_at IS NOT NULL")
-    sql = (f"WITH hidden_fps AS (SELECT l2.fingerprint FROM hidden h JOIN listings l2 ON l2.id = h.listing_id) "
-           f"SELECT {SUMMARY_COLS} FROM listings l LEFT JOIN favourites f ON f.listing_id = l.id "
-           f"{'WHERE ' + ' AND '.join(where) if where else ''} ORDER BY l.first_seen DESC, l.id DESC")
+    # A house is as new as its first copy on any site, and shows under its oldest listing number, so a
+    # copy found later on another site doesn't make it look new.
+    sql = (f"WITH hidden_fps AS (SELECT l2.fingerprint FROM hidden h JOIN listings l2 ON l2.id = h.listing_id), "
+           f"g AS (SELECT fingerprint, MIN(first_seen) AS first_seen FROM listings GROUP BY fingerprint) "
+           f"SELECT {SUMMARY_COLS} FROM listings l JOIN g ON g.fingerprint = l.fingerprint "
+           f"LEFT JOIN favourites f ON f.listing_id = l.id "
+           f"{'WHERE ' + ' AND '.join(where) if where else ''} ORDER BY g.first_seen DESC, l.fingerprint, l.id")
     # One row per house: the same house on another site is folded into `also_on`.
     out, by_fp = [], {}
     for r in map(dict, conn.execute(sql, args)):

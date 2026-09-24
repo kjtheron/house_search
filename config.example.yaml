@@ -72,6 +72,13 @@ sources:
     max_pages: 10
     province_id: 0      # unused
     locations: {}
+  remax:
+    # One request per town (or the province) returns the newest 240 listings of every type,
+    # about two months' worth; the site ignores URL filters. Towns by name, ID 0.
+    enabled: true
+    max_pages: 1        # unused: the site shows one page
+    province_id: 0      # unused
+    locations: {}       # e.g. {Stellenbosch: 0}
 
 http:
   min_delay_s: 5

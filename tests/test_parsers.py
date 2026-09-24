@@ -6,7 +6,7 @@ After saving a page, run `uv run python tests/redact_fixtures.py` to strip the s
 
 from pathlib import Path
 
-from housebot.adapters import pamgolding, privateproperty, propdata, property24
+from housebot.adapters import pamgolding, privateproperty, propdata, property24, remax
 from housebot.config import SearchConfig, SourceConfig
 
 FIX = Path(__file__).parent / "fixtures"
@@ -182,3 +182,33 @@ def test_agency_town_lists():
            "<loc>https://www.pamgolding.co.za/property-search/properties-for-sale-somerset-west/2192</loc>")
     assert pamgolding.parse_towns(xml) == {"Stellenbosch": 2932, "Somerset West": 2192}
     assert propdata.Seeff(None, None).town_ids("western-cape")["Somerset West"] == 0
+
+
+def test_remax_search_page():
+    page = remax.parse((FIX / "remax/search_western_cape.html").read_text())
+    assert (len(page.listings), page.errors, page.more) == (240, 0, False)
+    assert all(l.province == "western-cape" and l.url.endswith(l.source_listing_id) for l in page.listings)
+    l = page.listings[0]
+    assert (l.source_listing_id, l.price, l.beds, l.baths, l.garages, l.floor_m2, l.erf_m2, l.rates) == \
+        ("78630327", 5_950_000, 3, 2.5, 2, 483, 773, 3800)
+    assert (l.town, l.suburb, l.property_type, l.agency) == ("Sedgefield", "Cola Beach", "house", "RE/MAX Coastal (Sedgefield)")
+    assert {l.status for l in page.listings} == {"active", "under_offer", "sold"}  # "Offer Made", "Sold"
+    assert {"apartment", "vacant_land", "house"} <= {l.property_type for l in page.listings}
+
+
+def test_remax_detail_page():
+    d = remax.parse_detail((FIX / "remax/listing_cola_beach.html").read_text(), "78630327")
+    assert (d["floor_m2"], d["erf_m2"], d["ensuites"], d["parking"], d["rates"], d["status"]) == (483, 773, 1, 2, 3800, "active")
+    assert {"study", "garden", "braai", "pets", "fireplace", "borehole"} <= set(d["features"])
+    assert "kitchen" not in d["features"] and d["pets"] is True
+    assert d["description"].startswith("**DUAL MANDATE**")
+    assert remax.parse_detail("<html></html>", "78630327") == {"status": "gone"}
+
+
+def test_remax_urls_and_towns():
+    r = remax.Remax(None, SourceConfig(province_id=0))
+    assert r.search_url(SearchConfig(price_min=1), None, 0, None) == "https://www.remax.co.za/property-for-sale-south-africa/western-cape"
+    assert r.search_url(SearchConfig(), "Somerset West", 0, None).endswith("/western-cape/somerset-west")
+    xml = ("<loc>https://www.remax.co.za/property-for-sale-south-africa/western-cape/somerset-west</loc>"
+           "<loc>https://www.remax.co.za/property-for-sale-south-africa/gauteng/pretoria</loc>")
+    assert remax.parse_towns(xml, "western-cape") == {"Somerset West": 0}
