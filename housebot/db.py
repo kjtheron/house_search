@@ -111,15 +111,18 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
         # another site: a group that already has a listing from this site has its twin, never a 2nd one
         " (l.source <> ? AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
         "  AND x.source = ? AND x.id < ?))"
-        # same site, an agency the group doesn't have yet (NULL agency or price never passes)
-        " OR (l.source = ? AND l.price = ? AND l.agency <> ?"
+        # same site, an agency the group doesn't have yet (NULL agency or price never passes).
+        # ponytail: privateproperty gives no agency, so its agent stands in; two agents of one agency
+        # listing same-size units at one price would merge.
+        " OR (l.source = ? AND l.price = ? AND COALESCE(l.agency, l.agent_name) <> ?"
         "  AND (l.erf_m2 BETWEEN ? AND ? OR l.floor_m2 BETWEEN ? AND ?)"
-        "  AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint AND x.agency = ?"
+        "  AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
+        "   AND COALESCE(x.agency, x.agent_name) = ?"
         "   AND x.id < ?))) "
         "ORDER BY l.id",
         (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), before, l.beds, l.baths, l.property_type,
-         l.source, l.source, before, l.source, l.price, l.agency, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2),
-         l.agency, before)).fetchall()
+         l.source, l.source, before, l.source, l.price, l.agency or l.agent_name, *lo_hi(l.erf_m2),
+         *lo_hi(l.floor_m2), l.agency or l.agent_name, before)).fetchall()
     return next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
 
 
@@ -369,7 +372,12 @@ def search(conn, town=None, suburb=None, price_max=None, beds_min=None, since=No
     out, by_fp = [], {}
     for r in map(dict, conn.execute(sql, args)):
         if r["fingerprint"] in by_fp:
-            by_fp[r["fingerprint"]]["also_on"].append(r["source"])
+            first = by_fp[r["fingerprint"]]
+            if first["source"] == "property24":  # it throttles: link another site's copy, keep the number
+                first["also_on"].append("property24")
+                first.update(source=r["source"], url=r["url"])
+            else:
+                first["also_on"].append(r["source"])
             continue
         if len(out) < limit:
             by_fp[r["fingerprint"]] = r | {"also_on": []}

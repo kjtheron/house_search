@@ -108,7 +108,7 @@ def _line(l: dict) -> str:
     if l.get("status") not in (None, "active"):
         flags += f" [{l['status'].replace('_', ' ').upper()}]"
     where = ", ".join(x for x in (l.get("town"), l.get("suburb")) if x)
-    also = f"  (+ {', '.join(l['also_on'])})" if l.get("also_on") else ""
+    also = f"  (+ {', '.join(dict.fromkeys(l['also_on']))})" if l.get("also_on") else ""
     return f"#{l['id']:<5} {rand(l['price']):>13}  {where}  {beds} {size} {flags}{also}\n       {l['url']}"
 
 
@@ -410,10 +410,10 @@ def details(limit: Annotated[int, typer.Option(help="Listing pages to fetch (cop
 
 @app.command()
 def rematch(as_json: Json = False):
-    """Re-check stored listings against config.yaml now (no network), so search shows a config edit."""
+    """Re-link same houses and re-check stored listings against config.yaml now (no network)."""
     cfg = _cfg()
     conn = db.connect(cfg.paths.db)
-    changed = db.rematch(conn, lambda l: matches(l, cfg.search))
+    changed = db.relink(conn) + db.rematch(conn, lambda l: matches(l, cfg.search))
     d = {"changed": changed, "matching": conn.execute("SELECT count(*) FROM listings WHERE matches = 1").fetchone()[0],
          "details_waiting": db.details_waiting(conn, cfg.details.max_attempts)}
     _out(d, as_json, lambda d: typer.echo(
