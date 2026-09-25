@@ -123,7 +123,30 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
         (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), before, l.beds, l.baths, l.property_type,
          l.source, l.source, before, l.source, l.price, l.agency or l.agent_name, *lo_hi(l.erf_m2),
          *lo_hi(l.floor_m2), l.agency or l.agent_name, before)).fetchall()
-    return next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
+    fp = next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
+    addr = street_address(l.url)
+    if fp or not addr:
+        return fp
+    # Same site, same street address in the URL and price: one house listed twice (e.g. no agent shown).
+    rows = conn.execute("SELECT fingerprint, url FROM listings WHERE price = ? AND source = ? AND id < ? "
+                        "AND beds = ? AND baths IS ? AND property_type IS ? ORDER BY id",
+                        (l.price, l.source, before, l.beds, l.baths, l.property_type)).fetchall()
+    return next((r["fingerprint"] for r in rows if street_address(r["url"]) == addr), None)
+
+
+STREET_WORDS = {"street", "str", "road", "rd", "avenue", "ave", "drive", "crescent", "close", "lane", "way",
+                "boulevard", "place", "circle", "straat", "weg", "laan", "singel", "rylaan"}
+
+
+def street_address(url: str | None) -> frozenset | None:
+    """Words of the address slug at the end of a URL ('.../36-oewerlust-estate/254-voortrek-street/T56'),
+    as a set so '15-15-groenewald-street' equals '15-groenewald-street'. None without a number and street."""
+    parts = [p for p in (url or "").rstrip("/").split("/") if not re.fullmatch(r"T?\d+", p)]
+    tail = []
+    while parts and re.search(r"\d", parts[-1]):  # address segments carry a number; town/suburb ones don't
+        tail.append(parts.pop())
+    words = frozenset(w for p in tail for w in p.split("-") if w)
+    return words if words & STREET_WORDS else None
 
 
 HASH_FP = re.compile(r"[0-9a-f]{40}")  # old size-hash keys, which could merge two houses on one site

@@ -20,7 +20,7 @@ SEARCH = SearchConfig(towns=["Stellenbosch"], property_types=["house"], price_mi
 
 def house(id="1", source="property24", price=3_000_000, **kw) -> Listing:
     base = dict(town="Stellenbosch", suburb="Die Boord", property_type="house", beds=3, baths=2, erf_m2=600)
-    return Listing(source=source, source_listing_id=id, url=f"https://x/{source}/{id}", price=price, **base | kw)
+    return Listing(source=source, source_listing_id=id, price=price, **{"url": f"https://x/{source}/{id}"} | base | kw)
 
 
 # --- parsing helpers ---------------------------------------------------------
@@ -525,6 +525,17 @@ def test_same_house_same_site_other_agent_no_agency(conn):
         put(conn, house(lid, "privateproperty", agent_name=agent, erf_m2=952, price=2_750_000))
     fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
     assert fps == ["privateproperty:T1"] * 3 + ["privateproperty:T4"]  # same agent: another unit
+
+
+def test_same_house_same_site_by_street_address(conn):
+    pp = "https://www.privateproperty.co.za/for-sale/western-cape/overberg/gansbaai/gansbaai/"
+    put(conn, house("T1", "privateproperty", url=pp + "15-15-groenewald-street/T1", erf_m2=694))
+    put(conn, house("T2", "privateproperty", url=pp + "15-groenewald-street/T2", erf_m2=694))
+    put(conn, house("T3", "privateproperty", url=pp + "36-oewerlust-estate/254-voortrek-street/T3", erf_m2=None))
+    put(conn, house("T4", "privateproperty", url=pp + "37-oewerlust-estate/254-voortrek-street/T4", erf_m2=None))
+    fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
+    assert fps == ["privateproperty:T1"] * 2 + ["privateproperty:T3", "privateproperty:T4"]  # other unit
+    assert db.street_address("https://www.remax.co.za/x/barrydale/3-bedroom-house-for-sale-in-barrydale-201") is None
 
 
 def test_not_same_house(conn):
