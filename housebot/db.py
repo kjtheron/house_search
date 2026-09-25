@@ -111,17 +111,18 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
         # another site: a group that already has a listing from this site has its twin, never a 2nd one
         " (l.source <> ? AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
         "  AND x.source = ? AND x.id < ?))"
-        # same site, an agency the group doesn't have yet (NULL agency or price never passes).
-        # ponytail: privateproperty gives no agency, so its agent stands in; two agents of one agency
-        # listing same-size units at one price would merge.
-        " OR (l.source = ? AND l.price = ? AND COALESCE(l.agency, l.agent_name) <> ?"
+        # same site, an agency the group doesn't have yet (NULL price never passes; one side without an
+        # agency passes, both without don't). ponytail: privateproperty gives no agency, so its agent
+        # stands in; two agents of one agency listing same-size units at one price would merge.
+        " OR (l.source = ? AND l.price = ? AND COALESCE(l.agency, l.agent_name) IS NOT ?"
+        "  AND COALESCE(l.agency, l.agent_name, ?) IS NOT NULL"
         "  AND (l.erf_m2 BETWEEN ? AND ? OR l.floor_m2 BETWEEN ? AND ?)"
         "  AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
         "   AND COALESCE(x.agency, x.agent_name) = ?"
         "   AND x.id < ?))) "
         "ORDER BY l.id",
         (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), before, l.beds, l.baths, l.property_type,
-         l.source, l.source, before, l.source, l.price, l.agency or l.agent_name, *lo_hi(l.erf_m2),
+         l.source, l.source, before, l.source, l.price, l.agency or l.agent_name, l.agency or l.agent_name, *lo_hi(l.erf_m2),
          *lo_hi(l.floor_m2), l.agency or l.agent_name, before)).fetchall()
     fp = next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
     addr = street_address(l.url)

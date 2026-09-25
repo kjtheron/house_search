@@ -515,8 +515,12 @@ def test_same_house_same_site_other_agency(conn):
     put(conn, house("4", agency="Ellis Real Estate", erf_m2=595, price=2_495_000))    # same agency: another unit
     put(conn, house("5", agency="Other Agency", erf_m2=595, price=2_450_000))         # other price
     put(conn, house("6", agency="Third Agency", erf_m2=None, floor_m2=None, price=2_495_000))  # no size
+    put(conn, house("7", erf_m2=595, price=2_495_000))                                  # no agency: same house
+    put(conn, house("8", erf_m2=900, price=1_000_000))
+    put(conn, house("9", erf_m2=900, price=1_000_000))                                  # neither has one
     fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
-    assert fps == ["property24:1"] * 3 + ["property24:4", "property24:5", "property24:6"]
+    assert fps == ["property24:1"] * 3 + ["property24:4", "property24:5", "property24:6", "property24:1",
+                                          "property24:8", "property24:9"]
 
 
 def test_same_house_same_site_other_agent_no_agency(conn):
