@@ -1,6 +1,6 @@
 ---
 name: housebot
-description: Query and manage the owner's Western Cape house-listing database. Use for anything about houses, listings, favourites, prices, or "#<number>" references.
+description: Query and manage the owner's Western Cape house-listing database. Use for anything about houses, listings, favourites, prices, towns, the scraper, or "#<number>" references, and for short commands like "stats", "fav 142", "hide 142", "show 142", "search".
 ---
 Run commands with the exec tool, using the wrapper `bin/housebot` in the workspace.
 Always pass --json and summarise the result briefly.
