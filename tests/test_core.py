@@ -614,10 +614,10 @@ def test_details_copied_from_same_house_on_other_site(conn):
     put(conn, house("1", erf_m2=None, price=2_795_000))
     put(conn, house("T1", "privateproperty", erf_m2=None, price=2_795_000))  # same house
     DetailSite.calls = []
-    DetailSite.pages = {"https://x/property24/1": {"features": ["pool"], "rates": 1431}}
+    DetailSite.pages = {"https://x/privateproperty/T1": {"features": ["pool"], "rates": 1431}}  # newest first
     d = details(detail_cfg(), conn, None, adapters={"property24": DetailSite, "privateproperty": DetailSite})
     assert (d["fetched"], d["copied"], len(DetailSite.calls)) == (1, 1, 1)
-    assert conn.execute("SELECT rates FROM listings WHERE source_listing_id='T1'").fetchone()[0] == 1431
+    assert conn.execute("SELECT rates FROM listings WHERE source_listing_id='1'").fetchone()[0] == 1431
 
 
 def test_throttled_details_stay_queued_then_release(conn):
@@ -630,8 +630,8 @@ def test_throttled_details_stay_queued_then_release(conn):
     d = details(cfg, conn, None, adapters={"property24": DetailSite})
     assert d["blocked"] == ["property24"] and d["waiting"] == 2  # site stopped after 1st; both still queued
     assert db.pending_notifications(conn, hold_for_details=2) == []
-    details(cfg, conn, None, adapters={"property24": DetailSite})  # listing 1 fails a 2nd time
-    assert [p["id"] for p in db.pending_notifications(conn, hold_for_details=2)] == [1]  # released, card data
+    details(cfg, conn, None, adapters={"property24": DetailSite})  # newest (2) fails a 2nd time
+    assert [p["id"] for p in db.pending_notifications(conn, hold_for_details=2)] == [2]  # released, card data
 
 
 def test_disabled_site_gets_no_detail_requests(conn):

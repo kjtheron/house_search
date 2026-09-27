@@ -205,11 +205,12 @@ DETAIL_COLS = ("floor_m2", "erf_m2", "garages", "parking", "storeys", "ensuites"
 
 
 def pending_details(conn, max_attempts: int, limit: int = -1) -> list[dict]:
-    """Matching listings still waiting for their listing page, oldest first (limit -1 = all)."""
+    """Matching listings still waiting for their listing page, newest first so a new match is alerted
+    next run instead of queuing behind a backlog (limit -1 = all)."""
     return [dict(r) for r in conn.execute(
         "SELECT * FROM listings WHERE matches = 1 AND status IN ('active', 'under_offer') "
         "AND detail_fetched_at IS NULL AND detail_attempts < ? "
-        "AND id NOT IN (SELECT listing_id FROM hidden) ORDER BY first_seen, id LIMIT ?", (max_attempts, limit))]
+        "AND id NOT IN (SELECT listing_id FROM hidden) ORDER BY first_seen DESC, id DESC LIMIT ?", (max_attempts, limit))]
 
 
 def detailed_mate(conn, listing: dict) -> dict | None:

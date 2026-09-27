@@ -26,8 +26,10 @@ from .models import feature_key
 from .notify import Console, Telegram, rand
 
 app = typer.Typer(help="Western Cape house-listing bot.", no_args_is_help=True, add_completion=False,
-                  callback=lambda: logging.basicConfig(level=logging.INFO,
-                                                       format="%(levelname)s %(name)s: %(message)s"))
+                  callback=lambda: (logging.basicConfig(level=logging.INFO,
+                                                        format="%(levelname)s %(name)s: %(message)s"),
+                                    # httpx logs full URLs, and Telegram's contain the bot token
+                                    logging.getLogger("httpx").setLevel(logging.WARNING)))
 fav_app = typer.Typer(help="Favourites.", no_args_is_help=True)
 config_app = typer.Typer(help="Config.", no_args_is_help=True)
 towns_app = typer.Typer(help="Which towns to alert for (search.towns in config.yaml).", no_args_is_help=True)

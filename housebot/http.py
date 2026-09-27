@@ -47,6 +47,7 @@ class PoliteClient:
             self._wait(urlsplit(url).hostname)
             try:
                 r = self._client.get(url)
+                log.info("GET %s -> %d", url, r.status_code)
             except httpx.TransportError as e:
                 log.warning("GET %s failed (%s), attempt %d", url, e, attempt)
             else:

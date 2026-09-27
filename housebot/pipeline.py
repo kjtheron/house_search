@@ -132,7 +132,7 @@ def _fetch_pages(cfg: Config, http, listings, adapters, blocked: list):
 
 
 def details(cfg: Config, conn, http, limit: int | None = None, adapters=ADAPTERS) -> dict:
-    """Fetch listing pages for matches still waiting for details, oldest first, once each.
+    """Fetch listing pages for matches still waiting for details, newest first, once each.
 
     Same house already detailed on the other site -> copied, no request. A throttled site stops
     at once; its listings stay queued for the next run (a failure counts toward max_attempts).
