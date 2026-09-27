@@ -634,6 +634,16 @@ def test_throttled_details_stay_queued_then_release(conn):
     assert [p["id"] for p in db.pending_notifications(conn, hold_for_details=2)] == [1]  # released, card data
 
 
+def test_disabled_site_gets_no_detail_requests(conn):
+    from housebot.pipeline import details
+    cfg = detail_cfg()
+    cfg.sources["property24"].enabled = False
+    put(conn, house("1"))
+    DetailSite.calls = []
+    d = details(cfg, conn, None, adapters={"property24": DetailSite})
+    assert DetailSite.calls == [] and d["waiting"] == 1  # no request, still queued (no failed attempt)
+
+
 def test_new_filters():
     from datetime import date, timedelta
     s = SEARCH.model_copy(update={"storeys_max": 1, "ensuite_min": 1, "require_features": ["flatlet"],

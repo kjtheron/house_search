@@ -112,8 +112,10 @@ def collect(cfg: Config, conn, http, source: str | None = None, adapters=ADAPTER
 
 def _fetch_pages(cfg: Config, http, listings, adapters, blocked: list):
     """Yield (listing, details or None) for each listing page. A throttled site is dropped for the
-    rest of the run (its name appended to `blocked`); other errors skip just that listing."""
-    sites = {name: adapters[name](http, src) for name, src in cfg.sources.items() if name in adapters}
+    rest of the run (its name appended to `blocked`); other errors skip just that listing.
+    A disabled site gets no requests; its listings stay queued until it is enabled again."""
+    sites = {name: adapters[name](http, src) for name, src in cfg.sources.items()
+             if name in adapters and src.enabled}
     for l in listings:
         if l["source"] not in sites:
             continue
