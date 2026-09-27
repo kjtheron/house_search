@@ -56,7 +56,7 @@ Bank repossession sections on Property24, and auction houses (e.g. Auction Inc, 
 ## 4. Architecture
 
 ```
-            systemd timer (07:00 daily)
+            systemd timer (19:00 daily)
                       │
                       ▼
    housebot run ──► adapters ──► normalise ──► match ──► upsert DB ──► diff ──► Telegram notify
@@ -359,7 +359,7 @@ ExecStart=/home/housebot/housebot/.venv/bin/housebot run
 [Unit]
 Description=Run housebot daily
 [Timer]
-OnCalendar=*-*-* 07:00:00 Africa/Johannesburg
+OnCalendar=*-*-* 19:00:00 Africa/Johannesburg
 RandomizedDelaySec=15m
 Persistent=true
 [Install]

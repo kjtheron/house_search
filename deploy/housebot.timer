@@ -1,11 +1,11 @@
-# Starts housebot.service every day at 07:00 SA time (plus up to 15 min random delay).
-# Persistent=true: if the Pi was off at 07:00, it runs once when it boots.
+# Starts housebot.service every day at 19:00 SA time (plus up to 15 min random delay).
+# Persistent=true: if the Pi was off at 19:00, it runs once when it boots.
 
 [Unit]
 Description=Run housebot daily
 
 [Timer]
-OnCalendar=*-*-* 07:00:00 Africa/Johannesburg
+OnCalendar=*-*-* 19:00:00 Africa/Johannesburg
 RandomizedDelaySec=15m
 Persistent=true
 
