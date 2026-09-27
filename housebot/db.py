@@ -251,7 +251,8 @@ def detail_failed(conn, listing_id: int) -> None:
 
 def details_waiting(conn, max_attempts: int) -> int:
     return conn.execute("SELECT count(*) FROM listings WHERE matches = 1 AND status IN ('active', 'under_offer') "
-                        "AND detail_fetched_at IS NULL AND detail_attempts < ?", (max_attempts,)).fetchone()[0]
+                        "AND detail_fetched_at IS NULL AND detail_attempts < ? "
+                        "AND id NOT IN (SELECT listing_id FROM hidden)", (max_attempts,)).fetchone()[0]
 
 
 def pending_notifications(conn, hold_for_details: int | None = None) -> list[dict]:
