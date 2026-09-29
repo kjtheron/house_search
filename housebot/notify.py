@@ -71,6 +71,11 @@ class Telegram:
         self._last = time.monotonic()
         r = httpx.post(f"https://api.telegram.org/bot{self.token}/{method}", data=data, timeout=30)
         body = r.json()
+        new_id = (body.get("parameters") or {}).get("migrate_to_chat_id")
+        if new_id and "chat_id" in data:  # group became a supergroup: new ID, same chat
+            log.warning("Telegram group moved to chat %s: set TELEGRAM_CHAT_ID=%s in .env", new_id, new_id)
+            self.chat_id = data["chat_id"] = str(new_id)
+            return self._call(method, **data)
         if not body.get("ok"):
             raise RuntimeError(f"Telegram {method} failed: {body.get('description')}")
         return body["result"]["message_id"]

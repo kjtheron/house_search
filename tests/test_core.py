@@ -724,3 +724,22 @@ def test_rematch_command(tmp_path, monkeypatch):
     cfg.write_text(cfg.read_text().replace("beds_min: 3", "beds_min: 2"))
     r = CliRunner().invoke(cli.app, ["rematch"])
     assert "1 listings changed. 1 match now; 1 wait for details" in r.output
+
+
+def test_telegram_follows_supergroup_migration(monkeypatch):
+    from housebot import notify as n
+    sent = []
+
+    def post(url, data, timeout):
+        sent.append(data["chat_id"])
+        body = ({"ok": True, "result": {"message_id": 7}} if data["chat_id"] == "-1009"
+                else {"ok": False, "description": "group chat was upgraded to a supergroup chat",
+                      "parameters": {"migrate_to_chat_id": -1009}})
+        return type("R", (), {"json": lambda self: body})()
+
+    monkeypatch.setattr(n.httpx, "post", post)
+    monkeypatch.setattr(n.time, "sleep", lambda s: None)
+    t = n.Telegram("tok", "-5")
+    assert t.send("hi") == 7 and t.chat_id == "-1009"
+    t.send("again")
+    assert sent == ["-5", "-1009", "-1009"]  # later sends go straight to the new ID
