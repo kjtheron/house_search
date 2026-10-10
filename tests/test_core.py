@@ -710,6 +710,47 @@ def test_details_reveal_twin_missed_on_cards(conn):
     assert len(db.pending_notifications(conn)) == 1
 
 
+def test_same_house_when_agencies_count_baths_differently(conn):
+    # Robertson: two agencies on property24 (2.5 and 2 baths), and the house is on privateproperty twice.
+    put(conn, house("1", agency="Rawson", baths=2.5, erf_m2=485, floor_m2=151, price=2_395_000))
+    put(conn, house("T1", "privateproperty", erf_m2=485, price=2_395_000))
+    put(conn, house("2", agency="RE/MAX", erf_m2=485, price=2_395_000))
+    put(conn, house("T2", "privateproperty", erf_m2=485, price=2_395_000))           # 2nd one there, no agent shown
+    put(conn, house("T3", "privateproperty", baths=3, erf_m2=485, price=2_300_000))  # other baths and price
+    assert send_all(conn) == [(1, "new"), (5, "new")]
+
+
+def test_same_house_price_one_rand_apart(conn):
+    # Gustrouw: one agency asks R2 699 999, the next R2 700 000, a third counts 3 baths.
+    put(conn, house("1", agency="Jawitz", erf_m2=306, price=2_699_999))
+    put(conn, house("2", agency="Feroza's", erf_m2=306, price=2_700_000))
+    put(conn, house("3", agency="Seeff", baths=3, erf_m2=306, price=2_699_999))
+    assert send_all(conn) == [(1, "new")]
+    assert send_all(conn) == []  # R1 is not a price change
+
+
+def test_same_house_same_site_same_photo(conn):
+    # Gaylee: one agency lists the house twice with one photo; privateproperty has it once.
+    gaylee = dict(agency="Startprop", erf_m2=760, floor_m2=118, price=2_450_000)
+    put(conn, house("1", photo_url="https://img/387722248", **gaylee))
+    put(conn, house("2", photo_url="https://img/387722248", **gaylee))
+    put(conn, house("3", photo_url="https://img/9", **gaylee))  # other photo: another unit
+    put(conn, house("T1", "privateproperty", photo_url="https://pp/1", **gaylee | {"agency": None}))
+    fps = [r[0] for r in conn.execute("SELECT fingerprint FROM listings ORDER BY id")]
+    assert fps == ["property24:1", "property24:1", "property24:3", "property24:1"]
+
+
+def test_relink_moves_whole_group(conn):
+    # As stored before baths were ignored: 2 and 3 linked to each other, 1 apart.
+    put(conn, house("1", baths=2.5, erf_m2=674, floor_m2=287, price=2_395_000))
+    put(conn, house("T1", "privateproperty", erf_m2=674, floor_m2=287, price=2_395_000))
+    put(conn, house("R1", "remax", erf_m2=674, price=2_395_000))
+    conn.execute("UPDATE listings SET fingerprint='privateproperty:T1' WHERE id > 1")
+    assert db.relink(conn) == 2
+    assert {r[0] for r in conn.execute("SELECT fingerprint FROM listings")} == {"property24:1"}
+    assert db.relink(conn) == 0  # stable
+
+
 def test_rematch_command(tmp_path, monkeypatch):
     from typer.testing import CliRunner
     from housebot import cli

@@ -94,12 +94,15 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
     sizes, one site giving only floor size, different spellings). Garages are ignored: sites count parking differently.
     Same site (one house, several agencies): all of that plus the same price, a size within 2% and a
     different agency, so units in one development (same agency) stay apart.
+    Baths are ignored when erf and price both agree: agencies count them differently (2 or 2.5 or 3).
+    "Same price" next to a matching size means within 0.1%: R2 699 999 is R2 700 000.
     before_id: only consider listings stored before this one (used by relink()).
     """
     if not (l.suburb and l.beds is not None):
         return None
     before = before_id or 2**62
     lo_hi = lambda x: (x * 0.98, x / 0.98) if x else (None, None)
+    erf, price = lo_hi(l.erf_m2), (l.price * 0.999, l.price * 1.001) if l.price else (None, None)
     # Candidates come from the price/erf/floor indexes, never a full scan.
     rows = conn.execute(
         "SELECT fingerprint, suburb FROM listings l WHERE l.id IN ("
@@ -107,32 +110,43 @@ def same_house(conn, l: Listing, before_id: int | None = None) -> str | None:
         " UNION SELECT id FROM listings WHERE rates = ?"
         " UNION SELECT id FROM listings WHERE erf_m2 BETWEEN ? AND ?"
         " UNION SELECT id FROM listings WHERE floor_m2 BETWEEN ? AND ?) "
-        "AND l.id < ? AND l.beds = ? AND l.baths IS ? AND l.property_type IS ? AND ("
+        "AND l.id < ? AND l.beds = ? AND (l.baths IS ? OR (l.erf_m2 BETWEEN ? AND ? AND l.price BETWEEN ? AND ?)) "
+        "AND l.property_type IS ? AND ("
         # another site: a group that already has a listing from this site has its twin, never a 2nd one
         " (l.source <> ? AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
         "  AND x.source = ? AND x.id < ?))"
         # same site, an agency the group doesn't have yet (NULL price never passes; one side without an
         # agency passes, both without don't). ponytail: privateproperty gives no agency, so its agent
         # stands in; two agents of one agency listing same-size units at one price would merge.
-        " OR (l.source = ? AND l.price = ? AND COALESCE(l.agency, l.agent_name) IS NOT ?"
+        " OR (l.source = ? AND l.price BETWEEN ? AND ? AND COALESCE(l.agency, l.agent_name) IS NOT ?"
         "  AND COALESCE(l.agency, l.agent_name, ?) IS NOT NULL"
         "  AND (l.erf_m2 BETWEEN ? AND ? OR l.floor_m2 BETWEEN ? AND ?)"
         "  AND NOT EXISTS (SELECT 1 FROM listings x WHERE x.fingerprint = l.fingerprint"
         "   AND COALESCE(x.agency, x.agent_name) = ?"
         "   AND x.id < ?))) "
         "ORDER BY l.id",
-        (l.price, l.rates, *lo_hi(l.erf_m2), *lo_hi(l.floor_m2), before, l.beds, l.baths, l.property_type,
-         l.source, l.source, before, l.source, l.price, l.agency or l.agent_name, l.agency or l.agent_name, *lo_hi(l.erf_m2),
+        (l.price, l.rates, *erf, *lo_hi(l.floor_m2), before, l.beds, l.baths, *erf, *price, l.property_type,
+         l.source, l.source, before, l.source, *price, l.agency or l.agent_name, l.agency or l.agent_name, *erf,
          *lo_hi(l.floor_m2), l.agency or l.agent_name, before)).fetchall()
     fp = next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
     addr = street_address(l.url)
-    if fp or not addr:
+    if not fp and addr:
+        # Same site, same street address in the URL and price: one house listed twice (e.g. no agent shown).
+        rows = conn.execute("SELECT fingerprint, url FROM listings WHERE price = ? AND source = ? AND id < ? "
+                            "AND beds = ? AND baths IS ? AND property_type IS ? ORDER BY id",
+                            (l.price, l.source, before, l.beds, l.baths, l.property_type)).fetchall()
+        fp = next((r["fingerprint"] for r in rows if street_address(r["url"]) == addr), None)
+    if fp:
         return fp
-    # Same site, same street address in the URL and price: one house listed twice (e.g. no agent shown).
-    rows = conn.execute("SELECT fingerprint, url FROM listings WHERE price = ? AND source = ? AND id < ? "
-                        "AND beds = ? AND baths IS ? AND property_type IS ? ORDER BY id",
-                        (l.price, l.source, before, l.beds, l.baths, l.property_type)).fetchall()
-    return next((r["fingerprint"] for r in rows if street_address(r["url"]) == addr), None)
+    # Last: the same erf and price on another site, even when that group already has a listing from this
+    # site (two agencies, each on both sites). Or the same photo and price on this site (one agency
+    # listing a house twice). ponytail: identical units of one development that share erf and price
+    # across sites, or one photo, get one alert; compare descriptions if that hides real houses.
+    rows = conn.execute(
+        "SELECT fingerprint, suburb FROM listings WHERE price BETWEEN ? AND ? AND id < ? AND beds = ? "
+        "AND property_type IS ? AND ((source <> ? AND erf_m2 BETWEEN ? AND ?) OR (source = ? AND photo_url = ?)) "
+        "ORDER BY id", (*price, before, l.beds, l.property_type, l.source, *erf, l.source, l.photo_url)).fetchall()
+    return next((r["fingerprint"] for r in rows if _similar_place(r["suburb"], l.suburb)), None)
 
 
 STREET_WORDS = {"street", "str", "road", "rd", "avenue", "ave", "drive", "crescent", "close", "lane", "way",
@@ -166,12 +180,16 @@ def relink(conn) -> int:
     with conn:
         for r in conn.execute("SELECT * FROM listings ORDER BY id").fetchall():
             l = Listing.from_row(r)
-            current = own_key(l) if HASH_FP.fullmatch(r["fingerprint"] or "") else r["fingerprint"]
+            # Read again: an earlier row may have moved this one with its group.
+            stored = conn.execute("SELECT fingerprint FROM listings WHERE id=?", (r["id"],)).fetchone()[0]
+            old_hash = HASH_FP.fullmatch(stored or "")
+            current = own_key(l) if old_hash else stored
             linked = current != own_key(l)
             fp = current if linked else (same_house(conn, l, before_id=r["id"]) or current)
-            if fp != r["fingerprint"]:
-                conn.execute("UPDATE listings SET fingerprint=? WHERE id=?", (fp, r["id"]))
-                changed += 1
+            if fp != stored:
+                # The listings that joined this one follow it, so a merge never splits a group.
+                where, arg = ("id = ?", r["id"]) if old_hash else ("fingerprint = ?", stored)
+                changed += conn.execute(f"UPDATE listings SET fingerprint=? WHERE {where}", (fp, arg)).rowcount
         if changed:  # notifications follow their listing's group
             conn.execute("UPDATE notifications SET fingerprint = "
                          "(SELECT fingerprint FROM listings WHERE id = notifications.listing_id)")
@@ -238,9 +256,9 @@ def apply_details(conn, listing_id: int, d: dict, matches_fn) -> bool:
         # Not linked yet? Sizes and rates from the page may now reveal the twin on the other site.
         if row["fingerprint"] == own_key(l):
             fp = same_house(conn, l)
-            if fp:
-                conn.execute("UPDATE listings SET fingerprint=? WHERE id=?", (fp, listing_id))
-                conn.execute("UPDATE notifications SET fingerprint=? WHERE listing_id=?", (fp, listing_id))
+            if fp and fp != row["fingerprint"]:  # the listings that joined this one follow it
+                conn.execute("UPDATE listings SET fingerprint=? WHERE fingerprint=?", (fp, row["fingerprint"]))
+                conn.execute("UPDATE notifications SET fingerprint=? WHERE fingerprint=?", (fp, row["fingerprint"]))
     return bool(m)
 
 
@@ -259,6 +277,7 @@ def pending_notifications(conn, hold_for_details: int | None = None) -> list[dic
     """Matching, active, not hidden, and this house not yet notified at this price (plan §6.4).
 
     hold_for_details=N: skip listings still waiting for their details (unless N attempts failed).
+    A price within 0.1% of a notified one is the same price (two agencies: R2 699 999 and R2 700 000).
     """
     rows = conn.execute("""
         SELECT l.*,
@@ -270,7 +289,8 @@ def pending_notifications(conn, hold_for_details: int | None = None) -> list[dic
           AND (? IS NULL OR l.detail_fetched_at IS NOT NULL OR l.detail_attempts >= ?)
           AND l.fingerprint NOT IN (SELECT h2.fingerprint FROM hidden h JOIN listings h2 ON h2.id = h.listing_id)
           AND NOT EXISTS (SELECT 1 FROM notifications n
-                          WHERE n.fingerprint = l.fingerprint AND n.price_notified IS l.price)
+                          WHERE n.fingerprint = l.fingerprint AND (n.price_notified IS l.price
+                            OR n.price_notified BETWEEN l.price * 0.999 AND l.price * 1.001))
         ORDER BY l.first_seen, l.id""", (hold_for_details, hold_for_details)).fetchall()
     out, seen_fp = [], set()
     for r in rows:
