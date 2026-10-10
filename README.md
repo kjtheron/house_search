@@ -60,7 +60,9 @@ page holds the town's newest 240. RE/MAX listings are never marked gone just bec
 
 The same house on several sites (same type, beds, baths, similar suburb, and the same price, rates or
 size within 2%) is grouped, so you get one alert. So is one house listed by several agencies on the same
-site (same price, size within 2%, different agency). Its details are fetched once and copied to the others.
+site (same price, size within 2%, different agency), or twice by one agency (same photo and price). When erf
+and price both agree, the bath count is ignored and prices within 0.1% count as the same. Its details are
+fetched once and copied to the others. `housebot rematch` applies the rules to stored listings.
 Set `enabled: false` to switch a site off.
 
 All requests go through one polite client: a random 15–30 s wait between requests to the same site
