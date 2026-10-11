@@ -360,7 +360,7 @@ ExecStart=/home/housebot/housebot/.venv/bin/housebot run
 Description=Run housebot daily
 [Timer]
 OnCalendar=*-*-* 19:00:00 Africa/Johannesburg
-RandomizedDelaySec=15m
+AccuracySec=1s
 Persistent=true
 [Install]
 WantedBy=timers.target
