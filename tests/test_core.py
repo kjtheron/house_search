@@ -784,3 +784,15 @@ def test_telegram_follows_supergroup_migration(monkeypatch):
     assert t.send("hi") == 7 and t.chat_id == "-1009"
     t.send("again")
     assert sent == ["-5", "-1009", "-1009"]  # later sends go straight to the new ID
+
+
+def test_telegram_waits_out_flood_limit(monkeypatch):
+    # 2026-10-11: 18 alerts in a minute, then the summary got "Too Many Requests: retry after 21" and the run failed.
+    from housebot import notify as n
+    replies = [{"ok": False, "description": "Too Many Requests: retry after 21", "parameters": {"retry_after": 21}},
+               {"ok": True, "result": {"message_id": 8}}]
+    slept = []
+    monkeypatch.setattr(n.httpx, "post", lambda url, data, timeout: type("R", (), {"json": lambda self: replies.pop(0)})())
+    monkeypatch.setattr(n.time, "sleep", slept.append)
+    assert n.Telegram("tok", "-5").send("hi") == 8
+    assert 22 in slept

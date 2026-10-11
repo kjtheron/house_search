@@ -66,8 +66,8 @@ class Telegram:
             raise RuntimeError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set (see .env.example)")
         self._last = 0.0
 
-    def _call(self, method: str, **data) -> int:
-        time.sleep(max(0.0, self._last + 1.1 - time.monotonic()))  # <= 1 msg/s
+    def _call(self, method: str, _tries: int = 3, **data) -> int:
+        time.sleep(max(0.0, self._last + 3.1 - time.monotonic()))  # a group takes 20 messages a minute
         self._last = time.monotonic()
         r = httpx.post(f"https://api.telegram.org/bot{self.token}/{method}", data=data, timeout=30)
         body = r.json()
@@ -76,6 +76,11 @@ class Telegram:
             log.warning("Telegram group moved to chat %s: set TELEGRAM_CHAT_ID=%s in .env", new_id, new_id)
             self.chat_id = data["chat_id"] = str(new_id)
             return self._call(method, **data)
+        wait = (body.get("parameters") or {}).get("retry_after")
+        if wait and _tries:  # flood limit: Telegram says how long to wait
+            log.warning("Telegram flood limit, waiting %s s", wait)
+            time.sleep(wait + 1)
+            return self._call(method, _tries - 1, **data)
         if not body.get("ok"):
             raise RuntimeError(f"Telegram {method} failed: {body.get('description')}")
         return body["result"]["message_id"]
